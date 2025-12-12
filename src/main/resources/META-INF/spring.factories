@@ -1,0 +1,3 @@
+org.springframework.context.ApplicationContextInitializer=\
+ru.itmo.kursach_back.config.DotenvConfig
+
