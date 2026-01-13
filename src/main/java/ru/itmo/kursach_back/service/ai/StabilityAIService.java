@@ -17,7 +17,8 @@ import java.util.Map;
 @Service("stabilityAIService")
 public class StabilityAIService extends AbstractAIService {
 
-    private static final String API_URL = "https://api.stability.ai/v2beta/stable-image/generate/sd3";
+    @Value("${stability.api.url}")
+    private String apiUrl;
 
     @Value("${stability.api.key:}")
     private String apiKey;
@@ -28,8 +29,10 @@ public class StabilityAIService extends AbstractAIService {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    public StabilityAIService() {
+    public StabilityAIService(@Value("${stability.api.url}") String apiUrl) {
+        this.apiUrl = apiUrl;
         this.webClient = WebClient.builder()
+                .baseUrl(apiUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         this.objectMapper = new ObjectMapper();
@@ -67,10 +70,8 @@ public class StabilityAIService extends AbstractAIService {
         logger.info("Generating with Stability AI: {}x{}", width, height);
 
         try {
-            String fullUrl = API_URL;
-
             String responseJson = webClient.post()
-                    .uri(fullUrl)
+                    .uri("")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                     .bodyValue(requestBody)
                     .retrieve()

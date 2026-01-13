@@ -32,5 +32,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.status = :status")
     Double sumTotalAmountByStatus(@Param("status") OrderStatus status);
+
+    @Query(value = "SELECT checkout_cart(:userId, :shippingAddressId, :shippingCost)", nativeQuery = true)
+    Integer checkoutCart(@Param("userId") Integer userId,
+                         @Param("shippingAddressId") Integer shippingAddressId,
+                         @Param("shippingCost") Double shippingCost);
 }
 

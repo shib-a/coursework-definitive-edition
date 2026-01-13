@@ -20,7 +20,8 @@ import java.util.Map;
 @Service("openAIService")
 public class OpenAIServiceWebClient extends AbstractAIService {
 
-    private static final String API_URL = "https://api.openai.com/v1/images/generations";
+    @Value("${openai.api.url}")
+    private String apiUrl;
 
     @Value("${openai.api.key:}")
     private String apiKey;
@@ -31,9 +32,10 @@ public class OpenAIServiceWebClient extends AbstractAIService {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    public OpenAIServiceWebClient() {
+    public OpenAIServiceWebClient(@Value("${openai.api.url}") String apiUrl) {
+        this.apiUrl = apiUrl;
         this.webClient = WebClient.builder()
-                .baseUrl(API_URL)
+                .baseUrl(apiUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         this.objectMapper = new ObjectMapper();

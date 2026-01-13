@@ -18,7 +18,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/images")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class ImageController {
     private final ImageService imageService;
     private final ru.itmo.kursach_back.service.CustomUserDetailsService userDetailsService;

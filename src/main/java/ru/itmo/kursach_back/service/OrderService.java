@@ -1,7 +1,6 @@
 package ru.itmo.kursach_back.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.entity.Order;
@@ -21,7 +20,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final AuthService authService;
-    private final JdbcTemplate jdbcTemplate;
 
         public List<Order> getAllOrders() {
         return orderRepository.findAllByOrderByCreatedAtDesc();
@@ -74,9 +72,7 @@ public class OrderService {
                 .filter(addr -> addr.getUserId().equals(currentUser.getUserId()))
                 .orElseThrow(() -> new RuntimeException("Invalid shipping address"));
 
-        Integer orderId = jdbcTemplate.queryForObject(
-                "SELECT checkout_cart(?, ?, ?)",
-                Integer.class,
+        Integer orderId = orderRepository.checkoutCart(
                 currentUser.getUserId(),
                 shippingAddressId,
                 shippingCost
