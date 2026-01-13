@@ -48,4 +48,5 @@ public class Address {
     @JoinColumn(name = "country_id", insertable = false, updatable = false)
     @JsonIgnoreProperties({"addresses", "userProfiles"})
     Country country;
+
 }
