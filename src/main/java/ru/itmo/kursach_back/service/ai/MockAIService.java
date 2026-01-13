@@ -12,11 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Mock AI Service for testing and development
- * Generates simple placeholder images with text
- * This is the default service used when real AI services are not configured
- */
 @Service("mockAIService")
 @Primary // Use this by default if no API keys are configured
 public class MockAIService extends AbstractAIService {
@@ -92,7 +87,7 @@ public class MockAIService extends AbstractAIService {
     }
 
     public boolean isAvailable() {
-        return true; // Always available
+        return true;
     }
 
     public String getServiceName() {

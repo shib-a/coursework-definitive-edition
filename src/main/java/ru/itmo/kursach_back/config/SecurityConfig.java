@@ -2,6 +2,7 @@ package ru.itmo.kursach_back.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -61,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/images/public").permitAll()
                         .requestMatchers("/api/images/public/**").permitAll()
                         .requestMatchers("/api/images/*/file").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/images/upload").permitAll()
                         .requestMatchers("/api/designs/public").permitAll()
                         .requestMatchers("/api/designs/public/**").permitAll()
                         .requestMatchers("/api/designs/*/image").permitAll()

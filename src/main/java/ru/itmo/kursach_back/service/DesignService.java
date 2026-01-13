@@ -3,11 +3,14 @@ package ru.itmo.kursach_back.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import ru.itmo.kursach_back.dto.request.GenerateDesignRequestDto;
 import ru.itmo.kursach_back.dto.response.DesignResponseDto;
 import ru.itmo.kursach_back.entity.Design;
 import ru.itmo.kursach_back.entity.User;
 import ru.itmo.kursach_back.repository.DesignRepository;
+import ru.itmo.kursach_back.service.ai.AIService;
+import ru.itmo.kursach_back.service.ai.AIServiceFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -21,7 +24,7 @@ public class DesignService {
     private final DesignRepository designRepository;
     private final AuthService authService;
     private final ImageService imageService;
-    private final ru.itmo.kursach_back.service.ai.AIServiceFactory aiServiceFactory;
+    private final AIServiceFactory aiServiceFactory;
 
     @Transactional
     public DesignResponseDto generateDesign(GenerateDesignRequestDto request) {
@@ -39,7 +42,7 @@ public class DesignService {
 
         try {
 
-            ru.itmo.kursach_back.service.ai.AIService aiService = aiServiceFactory.getService(request.getAiModelId());
+            AIService aiService = aiServiceFactory.getService(request.getAiModelId());
 
             java.util.Map<String, Object> params = new java.util.HashMap<>();
             params.put("size", "1024x1024");
@@ -90,8 +93,8 @@ public class DesignService {
         }
     }
 
-    private org.springframework.web.multipart.MultipartFile createMultipartFile(byte[] content, String filename) {
-        return new org.springframework.web.multipart.MultipartFile() {
+    private MultipartFile createMultipartFile(byte[] content, String filename) {
+        return new MultipartFile() {
             @Override
             public String getName() { return "file"; }
 
