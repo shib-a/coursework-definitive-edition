@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.dto.response.TicketMessageResponseDto;
-import ru.itmo.kursach_back.entity.SupportTicket;
 import ru.itmo.kursach_back.entity.TicketMessage;
 import ru.itmo.kursach_back.entity.User;
-import ru.itmo.kursach_back.repository.SupportTicketRepository;
 import ru.itmo.kursach_back.repository.TicketMessageRepository;
 
 import java.time.LocalDateTime;
@@ -19,7 +17,7 @@ import java.util.stream.Collectors;
 public class TicketMessageService {
 
     private final TicketMessageRepository ticketMessageRepository;
-    private final SupportTicketRepository supportTicketRepository;
+    private final TicketService ticketService;
     private final AuthService authService;
 
         public List<TicketMessageResponseDto> getMessagesForTicket(Integer ticketId) {
@@ -33,7 +31,7 @@ public class TicketMessageService {
     public TicketMessageResponseDto createMessage(Integer ticketId, String messageText, Integer attachmentImageId, boolean isStaffResponse) {
         User currentUser = authService.getCurrentUser();
 
-        SupportTicket ticket = supportTicketRepository.findById(ticketId)
+        ticketService.getTicketById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
         TicketMessage message = new TicketMessage();
@@ -46,8 +44,7 @@ public class TicketMessageService {
 
         TicketMessage savedMessage = ticketMessageRepository.save(message);
 
-        ticket.setUpdatedAt(LocalDateTime.now());
-        supportTicketRepository.save(ticket);
+        ticketService.updateTicketTimestamp(ticketId);
 
         return convertToDto(savedMessage);
     }

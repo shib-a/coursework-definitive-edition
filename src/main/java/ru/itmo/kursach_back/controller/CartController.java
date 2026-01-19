@@ -10,7 +10,9 @@ import ru.itmo.kursach_back.dto.request.AddToCartRequestDto;
 import ru.itmo.kursach_back.entity.CartItem;
 import ru.itmo.kursach_back.service.CartService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -87,6 +89,18 @@ public class CartController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error clearing cart: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/total")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getCartTotal() {
+        try {
+            BigDecimal total = cartService.getCartTotal();
+            return ResponseEntity.ok(Map.of("total", total));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error calculating cart total: " + e.getMessage());
         }
     }
 }

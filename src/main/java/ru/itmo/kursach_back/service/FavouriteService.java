@@ -7,7 +7,6 @@ import ru.itmo.kursach_back.dto.response.DesignResponseDto;
 import ru.itmo.kursach_back.entity.Design;
 import ru.itmo.kursach_back.entity.User;
 import ru.itmo.kursach_back.entity.UserFavourite;
-import ru.itmo.kursach_back.repository.DesignRepository;
 import ru.itmo.kursach_back.repository.UserFavouriteRepository;
 
 import java.time.LocalDateTime;
@@ -19,16 +18,16 @@ import java.util.stream.Collectors;
 public class FavouriteService {
 
     private final UserFavouriteRepository favouriteRepository;
-    private final DesignRepository designRepository;
+    private final DesignService designService;
     private final AuthService authService;
 
         @Transactional
     public void addToFavourites(Integer designId) {
         User currentUser = authService.getCurrentUser();
 
-        if (!designRepository.existsById(designId)) {
-            throw new RuntimeException("Design not found");
-        }
+        // Проверка существования дизайна через сервис
+        designService.findDesignById(designId)
+                .orElseThrow(() -> new RuntimeException("Design not found"));
 
         if (favouriteRepository.findByUserIdAndDesignId(currentUser.getUserId(), designId).isPresent()) {
             throw new RuntimeException("Design already in favorites");
@@ -52,22 +51,32 @@ public class FavouriteService {
         User currentUser = authService.getCurrentUser();
         List<UserFavourite> favourites = favouriteRepository.findByUserId(currentUser.getUserId());
 
-        List<Integer> designIds = favourites.stream()
-                .map(UserFavourite::getDesignId)
+        return favourites.stream()
+                .map(favourite -> {
+                    try {
+                        Design design = designService.findDesignById(favourite.getDesignId())
+                                .orElse(null);
+                        if (design != null) {
+                            return convertToDto(design);
+                        }
+                        return null;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(dto -> dto != null)
                 .collect(Collectors.toList());
-
-        List<Design> designs = designRepository.findAllById(designIds);
-
-        return designs.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     private DesignResponseDto convertToDto(Design design) {
         DesignResponseDto dto = new DesignResponseDto();
         dto.setDesignId(design.getDesignId());
 
-        dto.setImageUrl(null); // TODO: Implement image URL generation via ImageData relationship
+        if (design.getImageId() != null) {
+            dto.setImageUrl("/api/designs/" + design.getDesignId() + "/image");
+        }
         dto.setPrompt(design.getOriginalPrompt());
-        dto.setStatus(null); // Status is tracked in GenerationRequest, not Design
+        dto.setStatus("COMPLETED");
         dto.setUserId(design.getOwnerId());
         dto.setCreatedAt(design.getCreatedAt() != null ? design.getCreatedAt().toString() : null);
         return dto;

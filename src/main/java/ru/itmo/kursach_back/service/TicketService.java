@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.entity.SupportTicket;
-import ru.itmo.kursach_back.entity.TicketMessage;
 import ru.itmo.kursach_back.repository.SupportTicketRepository;
 import ru.itmo.kursach_back.util.TicketCategory;
 import ru.itmo.kursach_back.util.TicketPriority;
@@ -75,6 +74,11 @@ public class TicketService {
         return supportTicketRepository.countByStatus(status);
     }
 
+    // Alias для AdminService
+    public Long countByStatus(TicketStatus status) {
+        return countTicketsByStatus(status);
+    }
+
         public List<SupportTicket> getTicketsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return supportTicketRepository.findByDateRange(startDate, endDate);
     }
@@ -93,6 +97,14 @@ public class TicketService {
         ticket.setTicketNumber(ticketNumber);
 
         return supportTicketRepository.save(ticket);
+    }
+
+    @Transactional
+    public void updateTicketTimestamp(Integer ticketId) {
+        SupportTicket ticket = supportTicketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        ticket.setUpdatedAt(LocalDateTime.now());
+        supportTicketRepository.save(ticket);
     }
 }
 

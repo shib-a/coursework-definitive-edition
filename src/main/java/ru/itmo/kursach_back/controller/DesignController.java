@@ -142,4 +142,37 @@ public class DesignController {
                     .body("Error updating visibility: " + e.getMessage());
         }
     }
+
+    @GetMapping("/popular")
+    public ResponseEntity<?> getPopularDesigns(@RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            List<Map<String, Object>> popularDesigns = designService.getPopularDesigns(limit);
+            return ResponseEntity.ok(popularDesigns);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving popular designs: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{designId}/is-popular")
+    public ResponseEntity<?> isDesignPopular(@PathVariable Integer designId) {
+        try {
+            Boolean isPopular = designService.isDesignPopular(designId);
+            return ResponseEntity.ok(Map.of("designId", designId, "isPopular", isPopular));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error checking design popularity: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{designId}/stats")
+    public ResponseEntity<?> getDesignStatistics(@PathVariable Integer designId) {
+        try {
+            Map<String, Object> stats = designService.getDesignStatistics(designId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving design statistics: " + e.getMessage());
+        }
+    }
 }

@@ -7,7 +7,6 @@ import ru.itmo.kursach_back.dto.response.ProductGroupResponseDto;
 import ru.itmo.kursach_back.dto.response.ProductResponseDto;
 import ru.itmo.kursach_back.entity.Product;
 import ru.itmo.kursach_back.repository.ProductRepository;
-import ru.itmo.kursach_back.repository.ProductRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,6 +67,12 @@ public class ProductService {
     public List<ProductResponseDto> searchProducts(String query) {
         List<Product> products = productRepository.findByProductNameContainingIgnoreCase(query);
         return products.stream().map(this::convertToDto).collect(Collectors.toList());
+    }
+
+        public void validateProductExists(Integer productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new RuntimeException("Product not found with id: " + productId);
+        }
     }
 
         @Transactional

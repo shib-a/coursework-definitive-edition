@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.entity.Order;
 import ru.itmo.kursach_back.entity.User;
-import ru.itmo.kursach_back.repository.AddressRepository;
 import ru.itmo.kursach_back.repository.OrderRepository;
 import ru.itmo.kursach_back.util.OrderStatus;
 
@@ -18,7 +17,7 @@ import java.util.Optional;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final AddressRepository addressRepository;
+    private final AddressService addressService;
     private final AuthService authService;
 
         public List<Order> getAllOrders() {
@@ -68,8 +67,8 @@ public class OrderService {
     public Order createOrder(Integer shippingAddressId, Double shippingCost) {
         User currentUser = authService.getCurrentUser();
 
-        addressRepository.findById(shippingAddressId)
-                .filter(addr -> addr.getUserId().equals(currentUser.getUserId()))
+        // Validate address belongs to current user
+        addressService.getAddressById(shippingAddressId)
                 .orElseThrow(() -> new RuntimeException("Invalid shipping address"));
 
         Integer orderId = orderRepository.checkoutCart(

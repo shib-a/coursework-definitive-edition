@@ -5,11 +5,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.dto.request.AddToCartRequestDto;
 import ru.itmo.kursach_back.entity.CartItem;
-import ru.itmo.kursach_back.entity.Product;
 import ru.itmo.kursach_back.entity.User;
 import ru.itmo.kursach_back.repository.CartItemRepository;
-import ru.itmo.kursach_back.repository.ProductRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,15 +18,15 @@ import java.util.Optional;
 public class CartService {
 
     private final CartItemRepository cartItemRepository;
-    private final ProductRepository productRepository;
+    private final ProductService productService;
     private final AuthService authService;
 
         @Transactional
     public CartItem addToCart(AddToCartRequestDto request) {
         User currentUser = authService.getCurrentUser();
 
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+        // Validate product exists
+        productService.validateProductExists(request.getProductId());
 
         Optional<CartItem> existingItem = cartItemRepository
                 .findByUserIdAndProductId(currentUser.getUserId(), request.getProductId());
@@ -90,6 +89,11 @@ public class CartService {
     public void clearCart() {
         User currentUser = authService.getCurrentUser();
         cartItemRepository.deleteByUserId(currentUser.getUserId());
+    }
+
+    public BigDecimal getCartTotal() {
+        User currentUser = authService.getCurrentUser();
+        return cartItemRepository.calculateCartTotal(currentUser.getUserId());
     }
 }
 

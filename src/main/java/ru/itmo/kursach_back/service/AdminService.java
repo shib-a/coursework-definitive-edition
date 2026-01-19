@@ -2,10 +2,7 @@ package ru.itmo.kursach_back.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.itmo.kursach_back.dto.response.StatisticsResponse;
-import ru.itmo.kursach_back.entity.Design;
-import ru.itmo.kursach_back.repository.*;
 import ru.itmo.kursach_back.util.OrderStatus;
 import ru.itmo.kursach_back.util.TicketStatus;
 
@@ -13,35 +10,32 @@ import ru.itmo.kursach_back.util.TicketStatus;
 @RequiredArgsConstructor
 public class AdminService {
 
-    private final UserRepository userRepository;
-    private final OrderRepository orderRepository;
-    private final DesignRepository designRepository;
-    private final SupportTicketRepository supportTicketRepository;
+    private final UserManagementService userManagementService;
+    private final OrderService orderService;
+    private final DesignService designService;
+    private final TicketService ticketService;
 
         public StatisticsResponse getStatistics() {
         StatisticsResponse stats = new StatisticsResponse();
 
-        stats.setTotalUsers(userRepository.count());
+        stats.setTotalUsers(userManagementService.getTotalUsersCount());
 
-        stats.setTotalOrders(orderRepository.count());
-        stats.setPendingOrders(orderRepository.countByStatus(OrderStatus.PENDING));
-        stats.setProcessingOrders(orderRepository.countByStatus(OrderStatus.PROCESSING));
-        stats.setCompletedOrders(orderRepository.countByStatus(OrderStatus.DELIVERED));
+        stats.setTotalOrders((long) orderService.getAllOrders().size());
+        stats.setPendingOrders(orderService.countOrdersByStatus(OrderStatus.PENDING));
+        stats.setProcessingOrders(orderService.countOrdersByStatus(OrderStatus.PROCESSING));
+        stats.setCompletedOrders(orderService.countOrdersByStatus(OrderStatus.DELIVERED));
 
-        stats.setTotalDesigns(designRepository.count());
-        stats.setPublicDesigns(designRepository.countByIsPublic(true));
-        stats.setPrivateDesigns(designRepository.countByIsPublic(false));
+        stats.setTotalDesigns((long) designService.getAllDesignsForModerator().size());
+        stats.setPublicDesigns((long) designService.getPublicDesigns().size());
+        stats.setPrivateDesigns(stats.getTotalDesigns() - stats.getPublicDesigns());
 
-        stats.setTotalTickets(supportTicketRepository.count());
-        stats.setOpenTickets(supportTicketRepository.countByStatus(TicketStatus.OPEN));
-        stats.setInProgressTickets(supportTicketRepository.countByStatus(TicketStatus.IN_PROGRESS));
-        stats.setClosedTickets(supportTicketRepository.countByStatus(TicketStatus.CLOSED));
+        stats.setTotalTickets((long) ticketService.getAllTickets().size());
+        stats.setOpenTickets(ticketService.countByStatus(TicketStatus.OPEN));
+        stats.setInProgressTickets(ticketService.countByStatus(TicketStatus.IN_PROGRESS));
+        stats.setClosedTickets(ticketService.countByStatus(TicketStatus.CLOSED));
 
-        Double totalRevenue = orderRepository.sumTotalAmountByStatus(OrderStatus.DELIVERED);
-        stats.setTotalRevenue(totalRevenue != null ? totalRevenue : 0.0);
-
-        Double pendingRevenue = orderRepository.sumTotalAmountByStatus(OrderStatus.PENDING);
-        stats.setPendingRevenue(pendingRevenue != null ? pendingRevenue : 0.0);
+        stats.setTotalRevenue(orderService.calculateTotalRevenueByStatus(OrderStatus.DELIVERED));
+        stats.setPendingRevenue(orderService.calculateTotalRevenueByStatus(OrderStatus.PENDING));
 
         return stats;
     }
