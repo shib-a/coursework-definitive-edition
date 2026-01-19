@@ -74,11 +74,6 @@ public class TicketService {
         return supportTicketRepository.countByStatus(status);
     }
 
-    // Alias для AdminService
-    public Long countByStatus(TicketStatus status) {
-        return countTicketsByStatus(status);
-    }
-
         public List<SupportTicket> getTicketsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return supportTicketRepository.findByDateRange(startDate, endDate);
     }

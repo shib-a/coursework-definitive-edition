@@ -30,9 +30,9 @@ public class AdminService {
         stats.setPrivateDesigns(stats.getTotalDesigns() - stats.getPublicDesigns());
 
         stats.setTotalTickets((long) ticketService.getAllTickets().size());
-        stats.setOpenTickets(ticketService.countByStatus(TicketStatus.OPEN));
-        stats.setInProgressTickets(ticketService.countByStatus(TicketStatus.IN_PROGRESS));
-        stats.setClosedTickets(ticketService.countByStatus(TicketStatus.CLOSED));
+        stats.setOpenTickets(ticketService.countTicketsByStatus(TicketStatus.OPEN));
+        stats.setInProgressTickets(ticketService.countTicketsByStatus(TicketStatus.IN_PROGRESS));
+        stats.setClosedTickets(ticketService.countTicketsByStatus(TicketStatus.CLOSED));
 
         stats.setTotalRevenue(orderService.calculateTotalRevenueByStatus(OrderStatus.DELIVERED));
         stats.setPendingRevenue(orderService.calculateTotalRevenueByStatus(OrderStatus.PENDING));

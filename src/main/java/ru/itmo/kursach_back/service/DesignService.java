@@ -243,17 +243,14 @@ public class DesignService {
         return dto;
     }
 
-    // Получение популярных дизайнов через SQL-функцию
     public List<Map<String, Object>> getPopularDesigns(Integer limit) {
         return designRepository.getPopularDesigns(limit != null ? limit : 10);
     }
 
-    // Проверка популярности дизайна
     public Boolean isDesignPopular(Integer designId) {
         return designRepository.isPopularDesign(designId);
     }
 
-    // Получение статистики по дизайну
     public Map<String, Object> getDesignStatistics(Integer designId) {
         return designRepository.getDesignStats(designId);
     }

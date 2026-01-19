@@ -52,7 +52,6 @@ public class UserManagementService {
         return userRepository.findByUsernameContainingIgnoreCase(username);
     }
 
-    // Получение общего количества пользователей
     public Long getTotalUsersCount() {
         return userRepository.count();
     }

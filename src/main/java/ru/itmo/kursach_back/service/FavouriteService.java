@@ -25,7 +25,6 @@ public class FavouriteService {
     public void addToFavourites(Integer designId) {
         User currentUser = authService.getCurrentUser();
 
-        // Проверка существования дизайна через сервис
         designService.findDesignById(designId)
                 .orElseThrow(() -> new RuntimeException("Design not found"));
 

@@ -67,7 +67,6 @@ public class OrderService {
     public Order createOrder(Integer shippingAddressId, Double shippingCost) {
         User currentUser = authService.getCurrentUser();
 
-        // Validate address belongs to current user
         addressService.getAddressById(shippingAddressId)
                 .orElseThrow(() -> new RuntimeException("Invalid shipping address"));
 

@@ -25,7 +25,6 @@ public class CartService {
     public CartItem addToCart(AddToCartRequestDto request) {
         User currentUser = authService.getCurrentUser();
 
-        // Validate product exists
         productService.validateProductExists(request.getProductId());
 
         Optional<CartItem> existingItem = cartItemRepository
