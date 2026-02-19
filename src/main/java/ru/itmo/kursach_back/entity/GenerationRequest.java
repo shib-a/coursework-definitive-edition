@@ -8,7 +8,7 @@ import ru.itmo.kursach_back.util.GenerationStatus;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "generation_requests")
+@Table(name = "generation_requests", schema = "\"is\"")
 @Data
 public class GenerationRequest {
     @Id

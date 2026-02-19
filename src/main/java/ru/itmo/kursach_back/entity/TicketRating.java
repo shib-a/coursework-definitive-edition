@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="ticket_ratings")
+@Table(name="ticket_ratings", schema = "\"is\"")
 @Data
 public class TicketRating {
     @Id

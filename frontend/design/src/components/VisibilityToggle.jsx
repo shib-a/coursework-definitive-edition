@@ -35,8 +35,7 @@ const VisibilityToggle = ({ itemId, itemType, initialStatus, onUpdate, disabled 
                 onUpdate(newStatus);
             }
         } catch (err) {
-            console.error('Failed to update visibility:', err);
-            setError(err.response?.data?.error || 'Failed to update visibility');
+            setError(err.response?.data?.error || 'Ошибка обновления видимости');
 
             setIsPublic(!newStatus);
         } finally {
@@ -49,12 +48,12 @@ const VisibilityToggle = ({ itemId, itemType, initialStatus, onUpdate, disabled 
             <Tooltip
                 title={
                     loading
-                        ? 'Updating...'
+                        ? 'Обновление...'
                         : error
                         ? error
                         : isPublic
-                        ? 'Public - Anyone can see this'
-                        : 'Private - Only you can see this'
+                        ? 'Публичный - виден всем'
+                        : 'Приватный - виден только вам'
                 }
                 arrow
             >
@@ -76,7 +75,7 @@ const VisibilityToggle = ({ itemId, itemType, initialStatus, onUpdate, disabled 
                             ) : (
                                 <LockIcon fontSize="small" />
                             )}
-                            <span>{isPublic ? 'Public' : 'Private'}</span>
+                            <span>{isPublic ? 'Публичный' : 'Приватный'}</span>
                         </Box>
                     }
                 />

@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reset_password_requests")
+@Table(name = "reset_password_requests", schema = "\"is\"")
 @Data
 public class ResetPasswordRequest {
     @Id

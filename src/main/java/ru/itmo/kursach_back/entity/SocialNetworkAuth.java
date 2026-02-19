@@ -7,7 +7,7 @@ import lombok.Data;
 import ru.itmo.kursach_back.util.AuthSocialNetworkType;
 
 @Entity
-@Table(name = "social_network_auths")
+@Table(name = "social_network_auths", schema = "\"is\"")
 @Data
 public class SocialNetworkAuth {
     @Id

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "support_tickets")
+@Table(name = "support_tickets", schema = "\"is\"")
 @Data
 public class SupportTicket {
     @Id

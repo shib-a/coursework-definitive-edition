@@ -20,7 +20,6 @@ public class DesignController {
     private final DesignService designService;
 
         @PostMapping("/generate")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> generateDesign(@Valid @RequestBody GenerateDesignRequestDto request) {
         try {
             DesignResponseDto response = designService.generateDesign(request);
@@ -173,6 +172,21 @@ public class DesignController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving design statistics: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Public endpoint to get active generation themes
+     * Available for anonymous users
+     */
+    @GetMapping("/themes")
+    public ResponseEntity<?> getActiveThemes() {
+        try {
+            List<Map<String, Object>> themes = designService.getActiveThemes();
+            return ResponseEntity.ok(themes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving themes: " + e.getMessage());
         }
     }
 }

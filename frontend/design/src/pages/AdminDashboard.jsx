@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
     Box,
@@ -23,7 +22,6 @@ import {
     Select,
     MenuItem,
     FormControl,
-    InputLabel,
     CircularProgress,
     Alert,
     IconButton,
@@ -56,8 +54,6 @@ const AdminDashboard = () => {
     const [statistics, setStatistics] = useState(null);
 
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [userDialogOpen, setUserDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const [themes, setThemes] = useState([]);
@@ -69,6 +65,18 @@ const AdminDashboard = () => {
     const [modelDialogOpen, setModelDialogOpen] = useState(false);
     const [selectedModel, setSelectedModel] = useState(null);
     const [modelForm, setModelForm] = useState({ modelName: '', apiEndpoint: '', description: '', isActive: true });
+
+    // Products state
+    const [products, setProducts] = useState([]);
+    const [productDialogOpen, setProductDialogOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [productForm, setProductForm] = useState({
+        productName: '',
+        basePrice: '',
+        size: '',
+        color: '',
+        material: ''
+    });
 
     useEffect(() => {
         if (!user || user.authority !== 'ADMIN') {
@@ -101,12 +109,16 @@ const AdminDashboard = () => {
                     const modelsData = await adminAPI.getAllModels();
                     setModels(Array.isArray(modelsData) ? modelsData : []);
                     break;
+                case 4: // Products
+                    const productsData = await adminAPI.getAllProducts();
+                    setProducts(Array.isArray(productsData) ? productsData : []);
+                    break;
                 default:
                     break;
             }
         } catch (err) {
             console.error('Load data error:', err);
-            setError('Failed to load data: ' + err.message);
+            setError('Ошибка загрузки данных: ' + err.message);
 
             switch (activeTab) {
                 case 1:
@@ -117,6 +129,9 @@ const AdminDashboard = () => {
                     break;
                 case 3:
                     setModels([]);
+                    break;
+                case 4:
+                    setProducts([]);
                     break;
             }
         } finally {
@@ -131,11 +146,11 @@ const AdminDashboard = () => {
     const handleBlockUser = async (userId, blocked) => {
         try {
             setLoading(true);
-            await adminAPI.blockUser(userId, blocked, blocked ? 'Blocked by admin' : '');
-            setSuccess(`User ${blocked ? 'blocked' : 'unblocked'} successfully`);
+            await adminAPI.blockUser(userId, blocked, blocked ? 'Заблокирован администратором' : '');
+            setSuccess(`Пользователь ${blocked ? 'заблокирован' : 'разблокирован'}`);
             loadData();
         } catch (err) {
-            setError('Failed to update user: ' + err.message);
+            setError('Ошибка обновления пользователя: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -145,10 +160,10 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             await adminAPI.changeUserRole(userId, role);
-            setSuccess('User role updated successfully');
+            setSuccess('Роль пользователя обновлена');
             loadData();
         } catch (err) {
-            setError('Failed to update user role: ' + err.message);
+            setError('Ошибка изменения роли: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -164,7 +179,7 @@ const AdminDashboard = () => {
             const results = await adminAPI.searchUsers(searchQuery);
             setUsers(results);
         } catch (err) {
-            setError('Search failed: ' + err.message);
+            setError('Ошибка поиска: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -195,29 +210,29 @@ const AdminDashboard = () => {
                     themeForm.description,
                     themeForm.isActive
                 );
-                setSuccess('Theme updated successfully');
+                setSuccess('Тема обновлена');
             } else {
                 await adminAPI.createTheme(themeForm.themeName, themeForm.description, themeForm.isActive);
-                setSuccess('Theme created successfully');
+                setSuccess('Тема создана');
             }
             setThemeDialogOpen(false);
             loadData();
         } catch (err) {
-            setError('Failed to save theme: ' + err.message);
+            setError('Ошибка сохранения темы: ' + err.message);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDeleteTheme = async (themeId) => {
-        if (!window.confirm('Are you sure you want to delete this theme?')) return;
+        if (!window.confirm('Вы уверены, что хотите удалить эту тему?')) return;
         try {
             setLoading(true);
             await adminAPI.deleteTheme(themeId);
-            setSuccess('Theme deleted successfully');
+            setSuccess('Тема удалена');
             loadData();
         } catch (err) {
-            setError('Failed to delete theme: ' + err.message);
+            setError('Ошибка удаления темы: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -227,10 +242,10 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             await adminAPI.toggleThemeStatus(themeId);
-            setSuccess('Theme status toggled');
+            setSuccess('Статус темы изменён');
             loadData();
         } catch (err) {
-            setError('Failed to toggle theme: ' + err.message);
+            setError('Ошибка изменения статуса темы: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -263,7 +278,7 @@ const AdminDashboard = () => {
                     modelForm.description,
                     modelForm.isActive
                 );
-                setSuccess('Model updated successfully');
+                setSuccess('Модель обновлена');
             } else {
                 await adminAPI.createModel(
                     modelForm.modelName,
@@ -271,26 +286,26 @@ const AdminDashboard = () => {
                     modelForm.description,
                     modelForm.isActive
                 );
-                setSuccess('Model created successfully');
+                setSuccess('Модель создана');
             }
             setModelDialogOpen(false);
             loadData();
         } catch (err) {
-            setError('Failed to save model: ' + err.message);
+            setError('Ошибка сохранения модели: ' + err.message);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDeleteModel = async (modelId) => {
-        if (!window.confirm('Are you sure you want to delete this model?')) return;
+        if (!window.confirm('Вы уверены, что хотите удалить эту модель?')) return;
         try {
             setLoading(true);
             await adminAPI.deleteModel(modelId);
-            setSuccess('Model deleted successfully');
+            setSuccess('Модель удалена');
             loadData();
         } catch (err) {
-            setError('Failed to delete model: ' + err.message);
+            setError('Ошибка удаления модели: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -300,10 +315,74 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             await adminAPI.toggleModelStatus(modelId);
-            setSuccess('Model status toggled');
+            setSuccess('Статус модели изменён');
             loadData();
         } catch (err) {
-            setError('Failed to toggle model: ' + err.message);
+            setError('Ошибка изменения статуса модели: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Product handlers
+    const handleOpenProductDialog = (product = null) => {
+        if (product) {
+            setSelectedProduct(product);
+            setProductForm({
+                productName: product.productName,
+                basePrice: product.basePrice,
+                size: product.size,
+                color: product.color,
+                material: product.material,
+            });
+        } else {
+            setSelectedProduct(null);
+            setProductForm({ productName: '', basePrice: '', size: '', color: '', material: '' });
+        }
+        setProductDialogOpen(true);
+    };
+
+    const handleSaveProduct = async () => {
+        try {
+            setLoading(true);
+            if (selectedProduct) {
+                await adminAPI.updateProduct(
+                    selectedProduct.productId,
+                    productForm.productName,
+                    parseFloat(productForm.basePrice),
+                    productForm.size,
+                    productForm.color,
+                    productForm.material
+                );
+                setSuccess('Продукт обновлён');
+            } else {
+                await adminAPI.createProduct(
+                    productForm.productName,
+                    parseFloat(productForm.basePrice),
+                    productForm.size,
+                    productForm.color,
+                    productForm.material
+                );
+                setSuccess('Продукт создан');
+            }
+            setProductDialogOpen(false);
+            loadData();
+        } catch (err) {
+            setError('Ошибка сохранения продукта: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteProduct = async (productId) => {
+        if (!window.confirm('Вы уверены, что хотите удалить этот продукт?')) return;
+        try {
+            setLoading(true);
+            await adminAPI.deleteProduct(productId);
+            setSuccess('Продукт удалён');
+            loadData();
+        } catch (err) {
+            setError('Ошибка удаления продукта: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -317,7 +396,7 @@ const AdminDashboard = () => {
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4" component="h1">
-                    Administrator Dashboard
+                    Панель администратора
                 </Typography>
                 <IconButton onClick={loadData} color="primary">
                     <RefreshIcon />
@@ -338,10 +417,11 @@ const AdminDashboard = () => {
 
             <Paper sx={{ width: '100%', mb: 2 }}>
                 <Tabs value={activeTab} onChange={handleTabChange} centered>
-                    <Tab label="Statistics" />
-                    <Tab label="Users" />
-                    <Tab label="Themes" />
-                    <Tab label="AI Models" />
+                    <Tab label="Статистика" />
+                    <Tab label="Пользователи" />
+                    <Tab label="Темы" />
+                    <Tab label="AI Модели" />
+                    <Tab label="Продукты" />
                 </Tabs>
             </Paper>
 
@@ -351,14 +431,14 @@ const AdminDashboard = () => {
                 </Box>
             )}
 
-            {}
+            {/* Statistics Tab */}
             {activeTab === 0 && !loading && statistics && (
                 <Grid container spacing={3}>
                     <Grid item xs={12} sm={6} md={3}>
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Total Users
+                                    Всего пользователей
                                 </Typography>
                                 <Typography variant="h4">{statistics.totalUsers}</Typography>
                             </CardContent>
@@ -368,7 +448,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Total Orders
+                                    Всего заказов
                                 </Typography>
                                 <Typography variant="h4">{statistics.totalOrders}</Typography>
                             </CardContent>
@@ -378,7 +458,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Total Designs
+                                    Всего дизайнов
                                 </Typography>
                                 <Typography variant="h4">{statistics.totalDesigns}</Typography>
                             </CardContent>
@@ -388,9 +468,9 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Total Revenue
+                                    Общая выручка
                                 </Typography>
-                                <Typography variant="h4">${statistics.totalRevenue?.toFixed(2)}</Typography>
+                                <Typography variant="h4">{statistics.totalRevenue?.toLocaleString('ru-RU')} ₽</Typography>
                             </CardContent>
                         </Card>
                     </Grid>
@@ -398,7 +478,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Pending Orders
+                                    Ожидающие заказы
                                 </Typography>
                                 <Typography variant="h5">{statistics.pendingOrders}</Typography>
                             </CardContent>
@@ -408,7 +488,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Processing Orders
+                                    В обработке
                                 </Typography>
                                 <Typography variant="h5">{statistics.processingOrders}</Typography>
                             </CardContent>
@@ -418,7 +498,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Completed Orders
+                                    Выполненные заказы
                                 </Typography>
                                 <Typography variant="h5">{statistics.completedOrders}</Typography>
                             </CardContent>
@@ -428,7 +508,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Open Tickets
+                                    Открытые тикеты
                                 </Typography>
                                 <Typography variant="h5">{statistics.openTickets}</Typography>
                             </CardContent>
@@ -438,7 +518,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Public Designs
+                                    Публичные дизайны
                                 </Typography>
                                 <Typography variant="h5">{statistics.publicDesigns}</Typography>
                             </CardContent>
@@ -448,7 +528,7 @@ const AdminDashboard = () => {
                         <Card>
                             <CardContent>
                                 <Typography color="textSecondary" gutterBottom>
-                                    Private Designs
+                                    Приватные дизайны
                                 </Typography>
                                 <Typography variant="h5">{statistics.privateDesigns}</Typography>
                             </CardContent>
@@ -457,19 +537,19 @@ const AdminDashboard = () => {
                 </Grid>
             )}
 
-            {}
+            {/* Users Tab */}
             {activeTab === 1 && !loading && (
                 <>
                     <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
                         <TextField
                             fullWidth
-                            label="Search Users"
+                            label="Поиск пользователей"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSearchUsers()}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearchUsers()}
                         />
                         <Button variant="contained" onClick={handleSearchUsers}>
-                            Search
+                            Найти
                         </Button>
                     </Box>
                     <TableContainer component={Paper}>
@@ -477,46 +557,46 @@ const AdminDashboard = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Username</TableCell>
-                                    <TableCell>Authority</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Registered</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell>Имя пользователя</TableCell>
+                                    <TableCell>Роль</TableCell>
+                                    <TableCell>Статус</TableCell>
+                                    <TableCell>Дата регистрации</TableCell>
+                                    <TableCell>Действия</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {Array.isArray(users) && users.length > 0 ? (
-                                    users.map((user) => (
-                                        <TableRow key={user.userId}>
-                                            <TableCell>{user.userId}</TableCell>
-                                            <TableCell>{user.username}</TableCell>
+                                    users.map((u) => (
+                                        <TableRow key={u.userId}>
+                                            <TableCell>{u.userId}</TableCell>
+                                            <TableCell>{u.username}</TableCell>
                                             <TableCell>
                                                 <FormControl size="small">
                                                     <Select
-                                                        value={user.authority}
-                                                        onChange={(e) => handleChangeUserRole(user.userId, e.target.value)}
+                                                        value={u.authority}
+                                                        onChange={(e) => handleChangeUserRole(u.userId, e.target.value)}
                                                     >
-                                                        <MenuItem value="USER">User</MenuItem>
-                                                        <MenuItem value="MODERATOR">Moderator</MenuItem>
-                                                        <MenuItem value="ADMIN">Admin</MenuItem>
+                                                        <MenuItem value="USER">Пользователь</MenuItem>
+                                                        <MenuItem value="MODERATOR">Модератор</MenuItem>
+                                                        <MenuItem value="ADMIN">Администратор</MenuItem>
                                                     </Select>
                                                 </FormControl>
                                             </TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={user.blocked ? 'Blocked' : 'Active'}
-                                                    color={user.blocked ? 'error' : 'success'}
+                                                    label={u.blocked ? 'Заблокирован' : 'Активен'}
+                                                    color={u.blocked ? 'error' : 'success'}
                                                     size="small"
                                                 />
                                             </TableCell>
-                                            <TableCell>{new Date(user.registeredDate).toLocaleDateString()}</TableCell>
+                                            <TableCell>{new Date(u.registeredDate).toLocaleDateString('ru-RU')}</TableCell>
                                             <TableCell>
                                                 <IconButton
                                                     size="small"
-                                                    color={user.blocked ? 'success' : 'error'}
-                                                    onClick={() => handleBlockUser(user.userId, !user.blocked)}
+                                                    color={u.blocked ? 'success' : 'error'}
+                                                    onClick={() => handleBlockUser(u.userId, !u.blocked)}
                                                 >
-                                                    {user.blocked ? <UnblockIcon /> : <BlockIcon />}
+                                                    {u.blocked ? <UnblockIcon /> : <BlockIcon />}
                                                 </IconButton>
                                             </TableCell>
                                         </TableRow>
@@ -525,7 +605,7 @@ const AdminDashboard = () => {
                                     <TableRow>
                                         <TableCell colSpan={6} align="center">
                                             <Typography variant="body2" color="textSecondary">
-                                                No users found.
+                                                Пользователи не найдены.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -536,12 +616,12 @@ const AdminDashboard = () => {
                 </>
             )}
 
-            {}
+            {/* Themes Tab */}
             {activeTab === 2 && !loading && (
                 <>
                     <Box sx={{ mb: 2 }}>
                         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenThemeDialog()}>
-                            Add Theme
+                            Добавить тему
                         </Button>
                     </Box>
                     <TableContainer component={Paper}>
@@ -549,9 +629,9 @@ const AdminDashboard = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell>Название</TableCell>
+                                    <TableCell>Статус</TableCell>
+                                    <TableCell>Действия</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -562,7 +642,7 @@ const AdminDashboard = () => {
                                             <TableCell>{theme.themeName}</TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={theme.isActive ? 'Active' : 'Inactive'}
+                                                    label={theme.isActive ? 'Активна' : 'Неактивна'}
                                                     color={theme.isActive ? 'success' : 'default'}
                                                     size="small"
                                                 />
@@ -594,7 +674,7 @@ const AdminDashboard = () => {
                                     <TableRow>
                                         <TableCell colSpan={4} align="center">
                                             <Typography variant="body2" color="textSecondary">
-                                                No themes found. Click "Add Theme" to create one.
+                                                Темы не найдены. Нажмите "Добавить тему" для создания.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -605,12 +685,12 @@ const AdminDashboard = () => {
                 </>
             )}
 
-            {}
+            {/* AI Models Tab */}
             {activeTab === 3 && !loading && (
                 <>
                     <Box sx={{ mb: 2 }}>
                         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModelDialog()}>
-                            Add AI Model
+                            Добавить модель
                         </Button>
                     </Box>
                     <TableContainer component={Paper}>
@@ -618,10 +698,10 @@ const AdminDashboard = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>ID</TableCell>
-                                    <TableCell>Name</TableCell>
+                                    <TableCell>Название</TableCell>
                                     <TableCell>API Endpoint</TableCell>
-                                    <TableCell>Status</TableCell>
-                                    <TableCell>Actions</TableCell>
+                                    <TableCell>Статус</TableCell>
+                                    <TableCell>Действия</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -633,7 +713,7 @@ const AdminDashboard = () => {
                                             <TableCell>{model.apiEndpoint}</TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={model.isActive ? 'Active' : 'Inactive'}
+                                                    label={model.isActive ? 'Активна' : 'Неактивна'}
                                                     color={model.isActive ? 'success' : 'default'}
                                                     size="small"
                                                 />
@@ -665,7 +745,7 @@ const AdminDashboard = () => {
                                     <TableRow>
                                         <TableCell colSpan={5} align="center">
                                             <Typography variant="body2" color="textSecondary">
-                                                No AI models found. Click "Add AI Model" to create one.
+                                                AI модели не найдены. Нажмите "Добавить модель" для создания.
                                             </Typography>
                                         </TableCell>
                                     </TableRow>
@@ -676,21 +756,84 @@ const AdminDashboard = () => {
                 </>
             )}
 
-            {}
+            {/* Products Tab */}
+            {activeTab === 4 && !loading && (
+                <>
+                    <Box sx={{ mb: 2 }}>
+                        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenProductDialog()}>
+                            Добавить продукт
+                        </Button>
+                    </Box>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>ID</TableCell>
+                                    <TableCell>Название</TableCell>
+                                    <TableCell>Цена</TableCell>
+                                    <TableCell>Размер</TableCell>
+                                    <TableCell>Цвет</TableCell>
+                                    <TableCell>Материал</TableCell>
+                                    <TableCell>Действия</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {Array.isArray(products) && products.length > 0 ? (
+                                    products.map((product) => (
+                                        <TableRow key={product.productId}>
+                                            <TableCell>{product.productId}</TableCell>
+                                            <TableCell>{product.productName}</TableCell>
+                                            <TableCell>{product.basePrice?.toLocaleString('ru-RU')} ₽</TableCell>
+                                            <TableCell>{product.size}</TableCell>
+                                            <TableCell>{product.color}</TableCell>
+                                            <TableCell>{product.material}</TableCell>
+                                            <TableCell>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => handleOpenProductDialog(product)}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => handleDeleteProduct(product.productId)}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} align="center">
+                                            <Typography variant="body2" color="textSecondary">
+                                                Продукты не найдены. Нажмите "Добавить продукт" для создания.
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </>
+            )}
+
+            {/* Theme Dialog */}
             <Dialog open={themeDialogOpen} onClose={() => setThemeDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>{selectedTheme ? 'Edit Theme' : 'Add Theme'}</DialogTitle>
+                <DialogTitle>{selectedTheme ? 'Редактировать тему' : 'Добавить тему'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 2 }}>
                         <TextField
                             fullWidth
-                            label="Theme Name"
+                            label="Название темы"
                             value={themeForm.themeName}
                             onChange={(e) => setThemeForm({ ...themeForm, themeName: e.target.value })}
                             sx={{ mb: 2 }}
                         />
                         <TextField
                             fullWidth
-                            label="Description"
+                            label="Описание"
                             multiline
                             rows={3}
                             value={themeForm.description}
@@ -704,26 +847,26 @@ const AdminDashboard = () => {
                                     onChange={(e) => setThemeForm({ ...themeForm, isActive: e.target.checked })}
                                 />
                             }
-                            label="Active"
+                            label="Активна"
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setThemeDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setThemeDialogOpen(false)}>Отмена</Button>
                     <Button onClick={handleSaveTheme} variant="contained">
-                        Save
+                        Сохранить
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {}
+            {/* Model Dialog */}
             <Dialog open={modelDialogOpen} onClose={() => setModelDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>{selectedModel ? 'Edit Model' : 'Add Model'}</DialogTitle>
+                <DialogTitle>{selectedModel ? 'Редактировать модель' : 'Добавить модель'}</DialogTitle>
                 <DialogContent>
                     <Box sx={{ pt: 2 }}>
                         <TextField
                             fullWidth
-                            label="Model Name"
+                            label="Название модели"
                             value={modelForm.modelName}
                             onChange={(e) => setModelForm({ ...modelForm, modelName: e.target.value })}
                             sx={{ mb: 2 }}
@@ -742,14 +885,65 @@ const AdminDashboard = () => {
                                     onChange={(e) => setModelForm({ ...modelForm, isActive: e.target.checked })}
                                 />
                             }
-                            label="Active"
+                            label="Активна"
                         />
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setModelDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setModelDialogOpen(false)}>Отмена</Button>
                     <Button onClick={handleSaveModel} variant="contained">
-                        Save
+                        Сохранить
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Product Dialog */}
+            <Dialog open={productDialogOpen} onClose={() => setProductDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>{selectedProduct ? 'Редактировать продукт' : 'Добавить продукт'}</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ pt: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Название продукта"
+                            value={productForm.productName}
+                            onChange={(e) => setProductForm({ ...productForm, productName: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Цена (₽)"
+                            type="number"
+                            value={productForm.basePrice}
+                            onChange={(e) => setProductForm({ ...productForm, basePrice: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Размер"
+                            value={productForm.size}
+                            onChange={(e) => setProductForm({ ...productForm, size: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Цвет"
+                            value={productForm.color}
+                            onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Материал"
+                            value={productForm.material}
+                            onChange={(e) => setProductForm({ ...productForm, material: e.target.value })}
+                            sx={{ mb: 2 }}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setProductDialogOpen(false)}>Отмена</Button>
+                    <Button onClick={handleSaveProduct} variant="contained">
+                        Сохранить
                     </Button>
                 </DialogActions>
             </Dialog>

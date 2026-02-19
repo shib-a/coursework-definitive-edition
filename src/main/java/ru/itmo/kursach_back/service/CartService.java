@@ -31,12 +31,12 @@ public class CartService {
                 .findByUserIdAndProductId(currentUser.getUserId(), request.getProductId());
 
         if (existingItem.isPresent()) {
-
             CartItem cartItem = existingItem.get();
             cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
-            return cartItemRepository.save(cartItem);
+            CartItem saved = cartItemRepository.save(cartItem);
+            // Reload to get all relationships
+            return cartItemRepository.findById(saved.getCartItemId()).orElse(saved);
         } else {
-
             CartItem cartItem = new CartItem();
             cartItem.setUserId(currentUser.getUserId());
             cartItem.setProductId(request.getProductId());
@@ -46,7 +46,9 @@ public class CartService {
             cartItem.setPrice(request.getPrice());
             cartItem.setDesignId(request.getDesignId());
             cartItem.setAddedAt(LocalDateTime.now());
-            return cartItemRepository.save(cartItem);
+            CartItem saved = cartItemRepository.save(cartItem);
+            // Reload to get all relationships
+            return cartItemRepository.findById(saved.getCartItemId()).orElse(saved);
         }
     }
 

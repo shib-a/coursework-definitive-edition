@@ -316,7 +316,7 @@ const ModeratorDashboard = () => {
                                         <TableCell>
                                             <Chip label={order.status} color={getStatusColor(order.status)} size="small" />
                                         </TableCell>
-                                        <TableCell>${order.totalAmount?.toFixed(2)}</TableCell>
+                                        <TableCell>{order.totalAmount?.toLocaleString('ru-RU')} ₽</TableCell>
                                         <TableCell>{new Date(order.createdAt).toLocaleString()}</TableCell>
                                         <TableCell>
                                             <Button

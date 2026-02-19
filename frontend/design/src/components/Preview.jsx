@@ -1,40 +1,72 @@
-import React, { useRef, useEffect, useContext, useCallback } from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useRef, useEffect, useContext, useCallback, useState } from 'react';
+import { Box, Typography, Paper, IconButton, Tooltip, Slider, Stack, Divider } from '@mui/material';
+import {
+    ZoomIn as ZoomInIcon,
+    ZoomOut as ZoomOutIcon,
+    RotateRight as RotateIcon,
+    Delete as DeleteIcon,
+    CenterFocusStrong as CenterIcon,
+    Flip as FlipIcon,
+} from '@mui/icons-material';
 import { fabric } from 'fabric';
 import { DesignContext } from '../DesignContext';
 import { colorNameToHex } from '../utils/colorUtils';
 import getApiImageUrl from '../utils/apiImageUrl';
 
 const Preview = () => {
-    const { designState, updateDesignElement } = useContext(DesignContext);
+    const { designState, updateDesignElement, removeDesign } = useContext(DesignContext);
     const canvasRef = useRef(null);
     const fabricCanvas = useRef(null);
     const baseShirtImage = useRef(null);
-    const [isCanvasReady, setIsCanvasReady] = React.useState(false);
+    const [isCanvasReady, setIsCanvasReady] = useState(false);
+    const [selectedObject, setSelectedObject] = useState(null);
+    const [objectScale, setObjectScale] = useState(50);
+    const [objectRotation, setObjectRotation] = useState(0);
 
     useEffect(() => {
-        console.log('Preview: Component mounted, fabricCanvas exists:', !!fabricCanvas.current);
-
-        if (fabricCanvas.current) {
-            console.log('Preview: Canvas already initialized, skipping');
-            return;
-        }
-
-        console.log('Preview: Creating new canvas...');
+        if (fabricCanvas.current) return;
 
         const timer = setTimeout(() => {
             if (canvasRef.current && !fabricCanvas.current) {
-                console.log('Preview: Initializing Fabric.js canvas');
                 fabricCanvas.current = new fabric.Canvas(canvasRef.current, {
-                    width: 800,
-                    height: 800,
+                    width: 500,
+                    height: 500,
+                    selection: true,
                 });
 
-                console.log('Preview: Canvas created, loading initial shirt color:', designState.color);
+                fabric.Object.prototype.set({
+                    transparentCorners: false,
+                    cornerColor: '#1976d2',
+                    cornerStrokeColor: '#1976d2',
+                    borderColor: '#1976d2',
+                    cornerSize: 12,
+                    cornerStyle: 'circle',
+                    borderScaleFactor: 2,
+                    padding: 10,
+                });
+
+                fabricCanvas.current.on('selection:created', (e) => {
+                    setSelectedObject(e.selected[0]);
+                    updateControlsFromObject(e.selected[0]);
+                });
+
+                fabricCanvas.current.on('selection:updated', (e) => {
+                    setSelectedObject(e.selected[0]);
+                    updateControlsFromObject(e.selected[0]);
+                });
+
+                fabricCanvas.current.on('selection:cleared', () => {
+                    setSelectedObject(null);
+                    setObjectScale(50);
+                    setObjectRotation(0);
+                });
+
+                fabricCanvas.current.on('object:modified', (e) => {
+                    updateControlsFromObject(e.target);
+                });
 
                 const hexColor = colorNameToHex(designState.color);
                 updateShirtColor(hexColor);
-
                 setIsCanvasReady(true);
             }
         }, 100);
@@ -42,28 +74,27 @@ const Preview = () => {
         return () => {
             clearTimeout(timer);
             if (fabricCanvas.current) {
-                console.log('Preview: Component unmounting, disposing canvas');
                 fabricCanvas.current.dispose();
                 fabricCanvas.current = null;
                 setIsCanvasReady(false);
             }
         };
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
+
+    const updateControlsFromObject = (obj) => {
+        if (obj) {
+            const avgScale = ((obj.scaleX + obj.scaleY) / 2) * 100;
+            setObjectScale(Math.round(avgScale));
+            setObjectRotation(Math.round(obj.angle || 0));
+        }
+    };
 
     const updateShirtColor = useCallback((hexColor) => {
         if (!fabricCanvas.current || !isCanvasReady) return;
 
         const baseShirtSrc = '/white_front_1.png';
         fabric.Image.fromURL(baseShirtSrc, (img) => {
-            if (!img) {
-                console.error('Failed to load image from:', baseShirtSrc);
-                return;
-            }
-
-            if (!fabricCanvas.current || !fabricCanvas.current.getContext) {
-                console.error('Canvas not available');
-                return;
-            }
+            if (!img || !fabricCanvas.current) return;
 
             const colorFilter = new fabric.Image.filters.BlendColor({
                 color: hexColor,
@@ -90,78 +121,55 @@ const Preview = () => {
 
             baseShirtImage.current = img;
 
-            if (fabricCanvas.current && fabricCanvas.current.getContext) {
+            if (fabricCanvas.current) {
                 fabricCanvas.current.setBackgroundImage(img, () => {
-                    if (fabricCanvas.current) {
-                        fabricCanvas.current.renderAll();
-                    }
+                    fabricCanvas.current?.renderAll();
                 });
             }
         }, { crossOrigin: 'anonymous' });
     }, [isCanvasReady]);
 
     useEffect(() => {
-        if (!isCanvasReady) {
-            console.log('Preview: Canvas not ready yet for color change:', designState.color);
-            return;
-        }
-
-        console.log('Preview: Updating shirt color:', designState.color);
+        if (!isCanvasReady) return;
         const hexColor = colorNameToHex(designState.color);
-        console.log('Preview: Hex color:', hexColor);
         updateShirtColor(hexColor);
     }, [designState.color, isCanvasReady, updateShirtColor]);
 
     useEffect(() => {
-        if (!isCanvasReady || !fabricCanvas.current) {
-            console.log('Preview: Canvas not ready for designs (isCanvasReady:', isCanvasReady, ', canvas exists:', !!fabricCanvas.current, ')');
-            return;
-        }
-
-        console.log('Preview: Design state changed, current designs:', designState.designs.length, 'designs');
+        if (!isCanvasReady || !fabricCanvas.current) return;
 
         const canvasObjects = fabricCanvas.current.getObjects();
-        console.log('Preview: Current objects on canvas:', canvasObjects.length);
-
         const existingDesignIds = canvasObjects.map(obj => obj.designId).filter(Boolean);
         const newDesigns = designState.designs.filter(design => !existingDesignIds.includes(design.id));
-
         const currentDesignIds = designState.designs.map(d => d.id);
         const objectsToRemove = canvasObjects.filter(obj => obj.designId && !currentDesignIds.includes(obj.designId));
 
-        console.log('Preview: New designs to add:', newDesigns.length);
-        console.log('Preview: Objects to remove:', objectsToRemove.length);
-
         objectsToRemove.forEach(obj => {
-            console.log('Preview: Removing object with designId:', obj.designId);
             fabricCanvas.current.remove(obj);
         });
 
         newDesigns.forEach((design) => {
             const imageUrl = getApiImageUrl(design.src);
-            console.log('Preview: Loading new design image:', design.src, '-> Full URL:', imageUrl);
             fabric.Image.fromURL(imageUrl, (img) => {
-                if (!img) {
-                    console.error('Preview: Failed to load design image:', design.src, 'Full URL:', imageUrl);
-                    return;
-                }
-
-                if (!fabricCanvas.current) {
-                    console.error('Preview: Canvas no longer available');
-                    return;
-                }
-
-                console.log('Preview: Successfully loaded design image:', imageUrl);
+                if (!img || !fabricCanvas.current) return;
 
                 img.designId = design.id;
 
                 img.set({
-                    left: design.left || 100,
-                    top: design.top || 100,
-                    scaleX: design.scaleX || 0.5,
-                    scaleY: design.scaleY || 0.5,
+                    left: design.left || 250,
+                    top: design.top || 150,
+                    scaleX: design.scaleX || 0.3,
+                    scaleY: design.scaleY || 0.3,
                     angle: design.angle || 0,
                     selectable: true,
+                    cornerColor: '#1976d2',
+                    cornerStrokeColor: '#fff',
+                    borderColor: '#1976d2',
+                    cornerSize: 14,
+                    cornerStyle: 'circle',
+                    transparentCorners: false,
+                    borderScaleFactor: 2.5,
+                    padding: 10,
                 });
 
                 img.on('modified', () => {
@@ -172,41 +180,207 @@ const Preview = () => {
                         scaleY: img.scaleY,
                         angle: img.angle,
                     });
+                    updateControlsFromObject(img);
                 });
 
-                if (fabricCanvas.current) {
-                    fabricCanvas.current.add(img);
-                    fabricCanvas.current.renderAll();
-                    console.log('Preview: Design added to canvas, total objects:', fabricCanvas.current.getObjects().length);
-                }
+                fabricCanvas.current.add(img);
+                fabricCanvas.current.setActiveObject(img);
+                fabricCanvas.current.renderAll();
             }, { crossOrigin: 'anonymous' });
         });
     }, [designState.designs, isCanvasReady, updateDesignElement]);
 
-    const scale = { S: 0.9, M: 1, L: 1.1, XL: 1.2 }[designState.size] || 1;
+    const handleScaleChange = (event, newValue) => {
+        setObjectScale(newValue);
+        if (selectedObject && fabricCanvas.current) {
+            const scale = newValue / 100;
+            selectedObject.set({ scaleX: scale, scaleY: scale });
+            fabricCanvas.current.renderAll();
+            if (selectedObject.designId) {
+                updateDesignElement(selectedObject.designId, { scaleX: scale, scaleY: scale });
+            }
+        }
+    };
+
+    const handleRotationChange = (event, newValue) => {
+        setObjectRotation(newValue);
+        if (selectedObject && fabricCanvas.current) {
+            selectedObject.set({ angle: newValue });
+            fabricCanvas.current.renderAll();
+            if (selectedObject.designId) {
+                updateDesignElement(selectedObject.designId, { angle: newValue });
+            }
+        }
+    };
+
+    const handleZoomIn = () => {
+        if (selectedObject && fabricCanvas.current) {
+            const newScale = Math.min(objectScale + 10, 200);
+            handleScaleChange(null, newScale);
+        }
+    };
+
+    const handleZoomOut = () => {
+        if (selectedObject && fabricCanvas.current) {
+            const newScale = Math.max(objectScale - 10, 10);
+            handleScaleChange(null, newScale);
+        }
+    };
+
+    const handleRotate = () => {
+        if (selectedObject && fabricCanvas.current) {
+            const newRotation = (objectRotation + 45) % 360;
+            handleRotationChange(null, newRotation);
+        }
+    };
+
+    const handleFlip = () => {
+        if (selectedObject && fabricCanvas.current) {
+            selectedObject.set({ flipX: !selectedObject.flipX });
+            fabricCanvas.current.renderAll();
+        }
+    };
+
+    const handleCenter = () => {
+        if (selectedObject && fabricCanvas.current) {
+            selectedObject.center();
+            fabricCanvas.current.renderAll();
+            if (selectedObject.designId) {
+                updateDesignElement(selectedObject.designId, {
+                    left: selectedObject.left,
+                    top: selectedObject.top,
+                });
+            }
+        }
+    };
+
+    const handleDelete = () => {
+        if (selectedObject && fabricCanvas.current) {
+            const designId = selectedObject.designId;
+            fabricCanvas.current.remove(selectedObject);
+            fabricCanvas.current.renderAll();
+            setSelectedObject(null);
+            if (designId && removeDesign) {
+                removeDesign(designId);
+            }
+        }
+    };
+
+    const scale = { S: 0.85, M: 1, L: 1.1, XL: 1.15 }[designState.size] || 1;
 
     return (
         <Box
             sx={{
                 width: '50%',
-                borderRight: '1px solid #ddd',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'flex-start',
-                backgroundColor: '#f9f9f9',
+                backgroundColor: '#f0f0f0',
                 p: 2,
-                overflowY: 'auto',
+                overflow: 'auto',
             }}
         >
-            <div style={{ transform: `scale(${scale})`, transition: 'transform 0.3s ease', transformOrigin: 'top center' }}>
-                <canvas ref={canvasRef}/>
-            </div>
+            <Paper
+                elevation={3}
+                sx={{
+                    p: 2,
+                    mb: 2,
+                    width: '100%',
+                    maxWidth: 520,
+                    backgroundColor: selectedObject ? '#fff' : '#f5f5f5',
+                    border: selectedObject ? '2px solid #1976d2' : '1px solid #ddd',
+                    transition: 'all 0.3s ease',
+                }}
+            >
+                <Typography variant="subtitle2" fontWeight="bold" color={selectedObject ? 'primary' : 'text.secondary'} gutterBottom>
+                    {selectedObject ? 'Редактирование дизайна' : 'Нажмите на дизайн для редактирования'}
+                </Typography>
+
+                {selectedObject && (
+                    <>
+                        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                            <Tooltip title="Уменьшить">
+                                <IconButton onClick={handleZoomOut} color="primary" size="small">
+                                    <ZoomOutIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Увеличить">
+                                <IconButton onClick={handleZoomIn} color="primary" size="small">
+                                    <ZoomInIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Повернуть">
+                                <IconButton onClick={handleRotate} color="primary" size="small">
+                                    <RotateIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Отразить">
+                                <IconButton onClick={handleFlip} color="primary" size="small">
+                                    <FlipIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Центрировать">
+                                <IconButton onClick={handleCenter} color="primary" size="small">
+                                    <CenterIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Divider orientation="vertical" flexItem />
+                            <Tooltip title="Удалить">
+                                <IconButton onClick={handleDelete} color="error" size="small">
+                                    <DeleteIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Stack>
+
+                        <Box sx={{ px: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Масштаб: {objectScale}%
+                            </Typography>
+                            <Slider
+                                value={objectScale}
+                                onChange={handleScaleChange}
+                                min={10}
+                                max={200}
+                                step={5}
+                                size="small"
+                                sx={{ mb: 1 }}
+                            />
+
+                            <Typography variant="caption" color="text.secondary">
+                                Поворот: {objectRotation}
+                            </Typography>
+                            <Slider
+                                value={objectRotation}
+                                onChange={handleRotationChange}
+                                min={0}
+                                max={360}
+                                step={5}
+                                size="small"
+                            />
+                        </Box>
+                    </>
+                )}
+            </Paper>
+
+            <Paper
+                elevation={4}
+                sx={{
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    transform: `scale(${scale})`,
+                    transition: 'transform 0.3s ease',
+                    transformOrigin: 'top center',
+                }}
+            >
+                <canvas ref={canvasRef} />
+            </Paper>
+
             <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                Size: {designState.size}
+                Размер: {designState.size} | Цвет: {designState.color}
             </Typography>
         </Box>
     );
 };
 
 export default Preview;
+

@@ -1,38 +1,99 @@
-import React, { useContext, useState } from 'react';
-import { Box, Typography, Button, Alert, CircularProgress, TextField, Stack } from '@mui/material';
-import { Collections as MyContentIcon, Upload as UploadIcon } from '@mui/icons-material';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
+import {
+    Box, Typography, Button, Alert, CircularProgress, Stack,
+    Card, CardMedia, CardActions, Grid, Tabs, Tab, IconButton,
+    Tooltip
+} from '@mui/material';
+import {
+    Upload as UploadIcon,
+    Add as AddIcon,
+    Delete as DeleteIcon,
+    Refresh as RefreshIcon
+} from '@mui/icons-material';
 import { DesignContext } from '../DesignContext';
 import { AuthContext } from '../AuthContext';
-import { imagesAPI } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+import { imagesAPI, designsAPI } from '../services/api';
+import getApiImageUrl from '../utils/apiImageUrl';
 
 const ImagesSection = () => {
     const { addDesign } = useContext(DesignContext);
     const { user } = useContext(AuthContext);
-    const navigate = useNavigate();
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [currentTab, setCurrentTab] = useState(0);
+    const [myContent, setMyContent] = useState([]);
+    const [contentLoading, setContentLoading] = useState(false);
 
-    const handleImageUpload = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                addDesign({ src: e.target.result }); // Add as base64 URL
-            };
-            reader.readAsDataURL(file);
+    const loadMyContent = useCallback(async () => {
+        if (!user) return;
+
+        setContentLoading(true);
+        try {
+            const [designsData, imagesData] = await Promise.all([
+                designsAPI.getMyDesigns().catch(() => []),
+                imagesAPI.getMyImages().catch(() => [])
+            ]);
+
+            const combined = [
+                ...designsData.map(d => ({
+                    ...d,
+                    type: 'design',
+                    id: d.designId,
+                    imageUrl: d.imageUrl || `/api/designs/${d.designId}/image`,
+                    title: d.prompt?.substring(0, 30) || 'Design',
+                    date: d.createdAt
+                })),
+                ...imagesData.map(i => ({
+                    ...i,
+                    type: 'image',
+                    id: i.imageId,
+                    imageUrl: i.imageUrl || `/api/images/${i.imageId}/file`,
+                    title: i.title || 'Image',
+                    date: i.uploadedDate
+                }))
+            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            setMyContent(combined);
+        } catch (err) {
+            console.error('Error loading content:', err);
+        } finally {
+            setContentLoading(false);
         }
+    }, [user]);
+
+    useEffect(() => {
+        if (user && currentTab === 1) {
+            loadMyContent();
+        }
+    }, [user, currentTab, loadMyContent]);
+
+    const handleQuickUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            addDesign({ src: e.target.result });
+            setSuccess('Изображение добавлено!');
+            setLoading(false);
+            setTimeout(() => setSuccess(''), 2000);
+        };
+        reader.onerror = () => {
+            setError('Ошибка чтения файла');
+            setLoading(false);
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
     };
 
-    const handleUploadToServer = async (event) => {
+    const handleUploadToAccount = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
         if (!user) {
-            setError('Please login to upload images to your account');
+            setError('Войдите для сохранения изображений');
             return;
         }
 
@@ -41,8 +102,8 @@ const ImagesSection = () => {
         setSuccess('');
 
         try {
-            const response = await imagesAPI.uploadImage(file, title || file.name, description);
-            setSuccess(`Image uploaded successfully! ID: ${response.imageId}`);
+            const response = await imagesAPI.uploadImage(file, file.name, '');
+            setSuccess('Изображение сохранено в библиотеку!');
 
             if (response.imageUrl) {
                 addDesign({
@@ -51,107 +112,173 @@ const ImagesSection = () => {
                 });
             }
 
-            setTitle('');
-            setDescription('');
+            if (currentTab === 1) {
+                loadMyContent();
+            }
         } catch (err) {
             console.error('Error uploading image:', err);
-            setError(err.response?.data?.message || 'Failed to upload image');
+            setError(err.response?.data?.message || 'Ошибка загрузки');
         } finally {
             setLoading(false);
+            event.target.value = '';
+        }
+    };
+
+    const handleUseItem = (item) => {
+        addDesign({
+            src: item.imageUrl,
+            ...(item.type === 'design' ? { designId: item.id } : { imageId: item.id })
+        });
+        setSuccess('Добавлено в дизайн!');
+        setTimeout(() => setSuccess(''), 2000);
+    };
+
+    const handleDeleteItem = async (item) => {
+        if (!window.confirm('Удалить этот элемент?')) return;
+
+        try {
+            if (item.type === 'design') {
+                await designsAPI.deleteDesign(item.id);
+            } else {
+                await imagesAPI.deleteImage(item.id);
+            }
+            setMyContent(prev => prev.filter(i => !(i.id === item.id && i.type === item.type)));
+            setSuccess('Удалено');
+            setTimeout(() => setSuccess(''), 2000);
+        } catch (err) {
+            setError('Ошибка удаления');
         }
     };
 
     return (
-        <Box sx={{ p: 2 }}>
-            <Typography variant="h4" gutterBottom>Images Section</Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-                Upload images to add to your design or save them to your account.
-            </Typography>
-
+        <Box>
             {error && (
-                <Alert severity="error" sx={{ mt: 2, mb: 2 }} onClose={() => setError('')}>
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
                     {error}
                 </Alert>
             )}
 
             {success && (
-                <Alert severity="success" sx={{ mt: 2, mb: 2 }} onClose={() => setSuccess('')}>
+                <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
                     {success}
                 </Alert>
             )}
 
-            <Stack spacing={2} sx={{ mt: 3 }}>
-                <Box>
-                    <Typography variant="h6" gutterBottom>Quick Upload</Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Upload an image temporarily (not saved to account)
-                    </Typography>
-                    <Button variant="outlined" component="label" fullWidth>
-                        Choose Image & Add to Design
-                        <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
-                    </Button>
-                </Box>
+            <Tabs
+                value={currentTab}
+                onChange={(e, v) => setCurrentTab(v)}
+                sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
+            >
+                <Tab label="Загрузка" />
+                {user && <Tab label="Моя библиотека" />}
+            </Tabs>
 
-                {user && (
-                    <Box>
-                        <Typography variant="h6" gutterBottom>Upload & Save to Account</Typography>
-                        <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Upload and save image to your account
+            {currentTab === 0 && (
+                <Stack spacing={2}>
+                    <Box sx={{ p: 2, border: '2px dashed #1976d2', borderRadius: 2, textAlign: 'center' }}>
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                            Быстрая загрузка
                         </Typography>
-
-                        <TextField
-                            fullWidth
-                            label="Title (optional)"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            sx={{ mb: 2 }}
-                            size="small"
-                        />
-
-                        <TextField
-                            fullWidth
-                            label="Description (optional)"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            multiline
-                            rows={2}
-                            sx={{ mb: 2 }}
-                            size="small"
-                        />
-
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Добавить изображение в дизайн
+                        </Typography>
                         <Button
                             variant="contained"
                             component="label"
-                            fullWidth
+                            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
                             disabled={loading}
-                            startIcon={loading ? <CircularProgress size={20} /> : <UploadIcon />}
+                            sx={{ mt: 1 }}
                         >
-                            {loading ? 'Uploading...' : 'Upload to My Images'}
-                            <input type="file" hidden accept="image/*" onChange={handleUploadToServer} />
+                            Выбрать и добавить
+                            <input type="file" hidden accept="image/*" onChange={handleQuickUpload} />
                         </Button>
                     </Box>
-                )}
 
-                {user && (
-                    <Button
-                        variant="outlined"
-                        color="primary"
-                        fullWidth
-                        startIcon={<MyContentIcon />}
-                        onClick={() => navigate('/my-content')}
-                    >
-                        View My Designs & Images
-                    </Button>
-                )}
+                    {user ? (
+                        <Box sx={{ p: 2, border: '1px solid #ddd', borderRadius: 2 }}>
+                            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                                Загрузить и сохранить
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Сохранить в библиотеку
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                component="label"
+                                fullWidth
+                                startIcon={loading ? <CircularProgress size={20} /> : <UploadIcon />}
+                                disabled={loading}
+                                sx={{ mt: 1 }}
+                            >
+                                Загрузить в библиотеку
+                                <input type="file" hidden accept="image/*" onChange={handleUploadToAccount} />
+                            </Button>
+                        </Box>
+                    ) : (
+                        <Alert severity="info">
+                            Войдите для сохранения изображений в библиотеку!
+                        </Alert>
+                    )}
+                </Stack>
+            )}
 
-                {!user && (
-                    <Alert severity="info">
-                        <Typography variant="body2">
-                            Login to save images to your account and access them anytime!
+            {currentTab === 1 && user && (
+                <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                            {myContent.length} элементов
                         </Typography>
-                    </Alert>
-                )}
-            </Stack>
+                        <Tooltip title="Обновить">
+                            <IconButton size="small" onClick={loadMyContent} disabled={contentLoading}>
+                                <RefreshIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+
+                    {contentLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                            <CircularProgress size={30} />
+                        </Box>
+                    ) : myContent.length === 0 ? (
+                        <Alert severity="info">
+                            Пока пусто. Загрузите изображения или создайте дизайны!
+                        </Alert>
+                    ) : (
+                        <Grid container spacing={1}>
+                            {myContent.map((item) => (
+                                <Grid item xs={6} key={`${item.type}-${item.id}`}>
+                                    <Card sx={{ position: 'relative' }}>
+                                        <CardMedia
+                                            component="img"
+                                            height="80"
+                                            image={getApiImageUrl(item.imageUrl)}
+                                            alt={item.title}
+                                            sx={{ objectFit: 'cover', cursor: 'pointer' }}
+                                            onClick={() => handleUseItem(item)}
+                                        />
+                                        <CardActions sx={{ p: 0.5, justifyContent: 'space-between' }}>
+                                            <Button
+                                                size="small"
+                                                onClick={() => handleUseItem(item)}
+                                                sx={{ fontSize: '0.7rem', minWidth: 'auto' }}
+                                            >
+                                                Использовать
+                                            </Button>
+                                            <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={() => handleDeleteItem(item)}
+                                            >
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </CardActions>
+                                    </Card>
+                                </Grid>
+                            ))}
+                        </Grid>
+                    )}
+                </Box>
+            )}
         </Box>
     );
 };

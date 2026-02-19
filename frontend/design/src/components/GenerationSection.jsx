@@ -12,7 +12,7 @@ const GenerationSection = () => {
     const navigate = useNavigate();
     const [prompt, setPrompt] = useState('');
     const [text, setText] = useState('');
-    const [aiAgent, setAiAgent] = useState(1); // Default to model ID 1
+    const [aiAgent, setAiAgent] = useState(1);
     const [variations, setVariations] = useState(2);
     const [theme, setTheme] = useState('CASUAL');
     const [loading, setLoading] = useState(false);
@@ -21,12 +21,12 @@ const GenerationSection = () => {
 
     const handleSubmit = async () => {
         if (!user) {
-            setError('Please login to generate designs');
+            setError('Войдите для генерации дизайнов');
             return;
         }
 
         if (!prompt) {
-            setError('Please enter a design prompt');
+            setError('Введите промпт для дизайна');
             return;
         }
 
@@ -43,26 +43,23 @@ const GenerationSection = () => {
                 variations
             );
 
-            console.log('Generation response:', response);
-
             if (response.status === 'PROCESSING') {
-                setSuccess('Design generation started! This is a placeholder implementation. Check "My Content" to see your design request.');
+                setSuccess('Генерация дизайна начата! Проверьте "Мой контент" для просмотра.');
             } else if (response.status === 'COMPLETED' && response.imageUrl) {
-                setSuccess('Design generated successfully! Added to preview.');
+                setSuccess('Дизайн сгенерирован! Добавлен в превью.');
 
                 addDesign({
                     src: response.imageUrl,
                     designId: response.designId
                 });
             } else {
-                setSuccess('Design request submitted! It will appear in "My Content" when ready.');
+                setSuccess('Запрос на дизайн отправлен! Он появится в "Мой контент" когда будет готов.');
             }
 
             setPrompt('');
             setText('');
         } catch (err) {
-            console.error('Generation error:', err);
-            const errorMsg = err.response?.data?.error || err.response?.data || err.message || 'Failed to generate design. Please try again.';
+            const errorMsg = err.response?.data?.error || err.response?.data || err.message || 'Ошибка генерации. Попробуйте снова.';
             setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
         } finally {
             setLoading(false);
@@ -73,7 +70,6 @@ const GenerationSection = () => {
         setLoading(true);
         setError('');
         try {
-
             const [designs, images] = await Promise.all([
                 designsAPI.getPublicDesigns(),
                 imagesAPI.getPublicImages()
@@ -95,7 +91,7 @@ const GenerationSection = () => {
             ];
 
             if (allContent.length === 0) {
-                setError('No public designs or images available yet. Check the Community Gallery later!');
+                setError('Публичные дизайны пока недоступны. Загляните позже!');
                 return;
             }
 
@@ -106,17 +102,16 @@ const GenerationSection = () => {
                     src: randomItem.url,
                     designId: randomItem.id
                 });
-                setSuccess(`Added random design by ${randomItem.data.ownerUsername || 'Anonymous'} to preview!`);
+                setSuccess(`Добавлен случайный дизайн от ${randomItem.data.ownerUsername || 'Аноним'}!`);
             } else {
                 addDesign({
                     src: randomItem.url,
                     imageId: randomItem.id
                 });
-                setSuccess(`Added random image by ${randomItem.data.uploaderUsername || 'Anonymous'} to preview!`);
+                setSuccess(`Добавлено случайное изображение от ${randomItem.data.uploaderUsername || 'Аноним'}!`);
             }
         } catch (err) {
-            console.error('Error fetching random design:', err);
-            setError('Failed to fetch from public gallery. Please try again.');
+            setError('Ошибка загрузки из галереи. Попробуйте снова.');
         } finally {
             setLoading(false);
         }
@@ -124,59 +119,54 @@ const GenerationSection = () => {
 
     return (
         <Box sx={{ p: 2 }}>
-            <Typography variant="h4" gutterBottom>Generation Section</Typography>
+            <Typography variant="h4" gutterBottom>Генерация</Typography>
 
-            {}
             <TextField
                 fullWidth
-                label="Design Prompt"
+                label="Промпт для дизайна"
                 variant="outlined"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={loading}
-                placeholder="e.g., A cute cat playing with yarn"
+                placeholder="Например: Милый кот играет с клубком"
                 sx={{ mb: 2 }}
             />
 
-            {}
             <TextField
                 fullWidth
-                label="Text to include (optional)"
+                label="Текст для изображения (опционально)"
                 variant="outlined"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 disabled={loading}
-                placeholder="e.g., Meow"
+                placeholder="Например: Мяу"
                 sx={{ mb: 2 }}
             />
 
-            {}
             <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Generative AI Model</InputLabel>
+                <InputLabel>AI Модель</InputLabel>
                 <Select value={aiAgent} onChange={(e) => setAiAgent(e.target.value)} disabled={loading}>
                     <MenuItem value={1}>OpenAI DALL-E 3</MenuItem>
                     <MenuItem value={2}>OpenAI DALL-E 2</MenuItem>
-                    <MenuItem value={3}>Stability AI - SDXL (Best Quality)</MenuItem>
-                    <MenuItem value={4}>Stability AI - SD v1.6 (Fast)</MenuItem>
-                    <MenuItem value={999}>Mock AI (Testing)</MenuItem>
+                    <MenuItem value={3}>Stability AI - SDXL</MenuItem>
+                    <MenuItem value={4}>Stability AI - SD v1.6</MenuItem>
+                    <MenuItem value={999}>Тестовая модель</MenuItem>
                 </Select>
             </FormControl>
 
-            {}
             <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Theme</InputLabel>
+                <InputLabel>Тема</InputLabel>
                 <Select value={theme} onChange={(e) => setTheme(e.target.value)} disabled={loading}>
-                    <MenuItem value="CASUAL">Casual</MenuItem>
-                    <MenuItem value="FORMAL">Formal</MenuItem>
-                    <MenuItem value="SPORT">Sport</MenuItem>
-                    <MenuItem value="ARTISTIC">Artistic</MenuItem>
-                    <MenuItem value="MINIMALIST">Minimalist</MenuItem>
+                    <MenuItem value="CASUAL">Повседневный</MenuItem>
+                    <MenuItem value="FORMAL">Формальный</MenuItem>
+                    <MenuItem value="SPORT">Спортивный</MenuItem>
+                    <MenuItem value="ARTISTIC">Художественный</MenuItem>
+                    <MenuItem value="MINIMALIST">Минималистичный</MenuItem>
                 </Select>
             </FormControl>
 
-            {}
             <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Amount of Variations</InputLabel>
+                <InputLabel>Количество вариаций</InputLabel>
                 <Select value={variations} onChange={(e) => setVariations(e.target.value)} disabled={loading}>
                     <MenuItem value={1}>1</MenuItem>
                     <MenuItem value={2}>2</MenuItem>
@@ -184,7 +174,6 @@ const GenerationSection = () => {
                 </Select>
             </FormControl>
 
-            {}
             <Button
                 variant="contained"
                 color="primary"
@@ -193,10 +182,9 @@ const GenerationSection = () => {
                 disabled={loading || !user}
                 sx={{ mb: 2 }}
             >
-                {loading ? <CircularProgress size={24} /> : 'Generate Design'}
+                {loading ? <CircularProgress size={24} /> : 'Сгенерировать'}
             </Button>
 
-            {}
             <Button
                 variant="outlined"
                 color="secondary"
@@ -205,10 +193,9 @@ const GenerationSection = () => {
                 disabled={loading}
                 sx={{ mb: 2 }}
             >
-                Add Random from Gallery
+                Добавить случайный из галереи
             </Button>
 
-            {}
             {user && (
                 <Button
                     variant="outlined"
@@ -218,16 +205,15 @@ const GenerationSection = () => {
                     onClick={() => navigate('/my-content')}
                     sx={{ mb: 2 }}
                 >
-                    View My Designs & Images
+                    Мои дизайны и изображения
                 </Button>
             )}
 
-            {}
             {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
-            {!user && <Alert severity="warning" sx={{ mt: 2 }}>Please login to generate designs</Alert>}
+            {!user && <Alert severity="warning" sx={{ mt: 2 }}>Войдите для генерации дизайнов</Alert>}
             <Alert severity="info" sx={{ mt: 2 }}>
-                Generations may take time based on AI model and complexity.
+                Генерация может занять время в зависимости от модели.
             </Alert>
         </Box>
     );

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "generation_themes")
+@Table(name = "generation_themes", schema = "\"is\"")
 @Data
 public class GenerationTheme {
     @Id

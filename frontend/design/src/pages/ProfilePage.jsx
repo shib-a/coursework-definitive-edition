@@ -542,10 +542,10 @@ const ProfilePage = () => {
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <Box>
                                                 <Typography variant="body1">
-                                                    Total: <strong>${order.totalAmount?.toFixed(2)}</strong>
+                                                    Итого: <strong>{order.totalAmount?.toLocaleString('ru-RU')} ₽</strong>
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {order.orderItems?.length || 0} item(s)
+                                                    {order.orderItems?.length || 0} товар(ов)
                                                 </Typography>
                                             </Box>
                                             <Button
@@ -732,15 +732,15 @@ const ProfilePage = () => {
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography variant="subtitle2">Total Amount:</Typography>
+                                    <Typography variant="subtitle2">Сумма заказа:</Typography>
                                     <Typography variant="body2" fontWeight="bold">
-                                        ${selectedOrder.totalAmount?.toFixed(2)}
+                                        {selectedOrder.totalAmount?.toLocaleString('ru-RU')} ₽
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="subtitle2">Shipping Cost:</Typography>
+                                    <Typography variant="subtitle2">Доставка:</Typography>
                                     <Typography variant="body2">
-                                        ${selectedOrder.shippingCost?.toFixed(2)}
+                                        {selectedOrder.shippingCost?.toLocaleString('ru-RU')} ₽
                                     </Typography>
                                 </Box>
                             </Paper>
@@ -766,10 +766,10 @@ const ProfilePage = () => {
                                                 </Box>
                                                 <Box sx={{ textAlign: 'right' }}>
                                                     <Typography variant="subtitle1">
-                                                        ${item.subtotal?.toFixed(2)}
+                                                        {item.subtotal?.toLocaleString('ru-RU')} ₽
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
-                                                        ${item.unitPrice?.toFixed(2)} each
+                                                        {item.unitPrice?.toLocaleString('ru-RU')} ₽ за шт.
                                                     </Typography>
                                                 </Box>
                                             </Box>

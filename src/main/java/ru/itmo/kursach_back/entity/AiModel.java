@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "ai_models")
+@Table(name = "ai_models", schema = "\"is\"")
 @Data
 public class AiModel {
     @Id

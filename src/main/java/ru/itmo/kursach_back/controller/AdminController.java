@@ -217,5 +217,50 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
     }
-}
 
+    @GetMapping("/products")
+    public ResponseEntity<List<Product>> getAllProducts() {
+        return ResponseEntity.ok(productService.getAllProductsRaw());
+    }
+
+    @PostMapping("/products")
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody CreateProductRequest request) {
+        Product product = productService.createProduct(
+                request.getProductName(),
+                request.getBasePrice(),
+                request.getSize(),
+                request.getColor(),
+                request.getMaterial()
+        );
+        return ResponseEntity.ok(product);
+    }
+
+    @PutMapping("/products/{productId}")
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Integer productId,
+            @Valid @RequestBody CreateProductRequest request) {
+        try {
+            Product product = productService.updateProduct(
+                    productId,
+                    request.getProductName(),
+                    request.getBasePrice(),
+                    request.getSize(),
+                    request.getColor(),
+                    request.getMaterial()
+            );
+            return ResponseEntity.ok(product);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Integer productId) {
+        try {
+            productService.deleteProduct(productId);
+            return ResponseEntity.ok(Map.of("message", "Product deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}

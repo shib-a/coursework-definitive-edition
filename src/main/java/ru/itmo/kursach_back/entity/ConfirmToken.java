@@ -9,7 +9,7 @@ import ru.itmo.kursach_back.util.AuthTokenType;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "confirm_tokens")
+@Table(name = "confirm_tokens", schema = "\"is\"")
 @Data
 public class ConfirmToken {
     @Id

@@ -1,5 +1,6 @@
 package ru.itmo.kursach_back.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -10,7 +11,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cart_items")
+@Table(name = "cart_items", schema = "\"is\"")
 @Data
 public class CartItem {
     @Id
@@ -54,15 +55,17 @@ public class CartItem {
     @Column(columnDefinition = "TEXT")
     String customization;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnoreProperties({"orders", "addresses", "designs", "images", "tickets", "favourites", "cartItems", "account", "profile"})
     User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "design_id", insertable = false, updatable = false)
+    @JsonIgnoreProperties({"owner", "userFavourites", "orderItems", "cartItems"})
     Design design;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
     Product product;
 }

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "designs")
+@Table(name = "designs", schema = "\"is\"")
 @Data
 public class Design {
     @Id
@@ -71,9 +71,9 @@ public class Design {
     @JsonIgnoreProperties({"designs", "generationRequests"})
     AiModel aiModel;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id", insertable = false, updatable = false)
-    @JsonIgnoreProperties({"user", "design"})
+    @JsonIgnoreProperties({"uploader"})
     ImageData imageData;
 
     @OneToMany(mappedBy = "design")

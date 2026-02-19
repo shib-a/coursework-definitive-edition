@@ -17,6 +17,10 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    public List<Product> getAllProductsRaw() {
+        return productRepository.findAll();
+    }
+
         public List<ProductGroupResponseDto> getGroupedProducts() {
         List<Product> products = productRepository.findAll();
 
@@ -84,6 +88,38 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @Transactional
+    public Product createProduct(String productName, Double basePrice, String size, String color, String material) {
+        Product product = new Product();
+        product.setProductName(productName);
+        product.setBasePrice(basePrice);
+        product.setSize(size);
+        product.setColor(color);
+        product.setMaterial(material);
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public Product updateProduct(Integer productId, String productName, Double basePrice, String size, String color, String material) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+
+        product.setProductName(productName);
+        product.setBasePrice(basePrice);
+        product.setSize(size);
+        product.setColor(color);
+        product.setMaterial(material);
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public void deleteProduct(Integer productId) {
+        if (!productRepository.existsById(productId)) {
+            throw new RuntimeException("Product not found with id: " + productId);
+        }
+        productRepository.deleteById(productId);
+    }
+
     private ProductResponseDto convertToDto(Product product) {
         ProductResponseDto dto = new ProductResponseDto();
         dto.setProductId(product.getProductId());
@@ -95,4 +131,3 @@ public class ProductService {
         return dto;
     }
 }
-

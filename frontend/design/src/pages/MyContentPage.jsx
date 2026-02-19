@@ -62,17 +62,14 @@ const MyContentPage = () => {
         setError('');
         try {
             if (currentTab === 0) {
-
                 const designsData = await designsAPI.getMyDesigns();
                 setDesigns(designsData);
             } else {
-
                 const imagesData = await imagesAPI.getMyImages();
                 setImages(imagesData);
             }
         } catch (err) {
-            console.error('Error loading content:', err);
-            setError(err.response?.data?.message || 'Failed to load content');
+            setError(err.response?.data?.message || 'Ошибка загрузки контента');
         } finally {
             setLoading(false);
         }
@@ -93,7 +90,7 @@ const MyContentPage = () => {
     };
 
     const handleDelete = async (id, type) => {
-        if (!window.confirm(`Are you sure you want to delete this ${type}?`)) {
+        if (!window.confirm(`Вы уверены, что хотите удалить ${type === 'design' ? 'этот дизайн' : 'это изображение'}?`)) {
             return;
         }
 
@@ -107,41 +104,32 @@ const MyContentPage = () => {
             }
             handleCloseDialog();
         } catch (err) {
-            console.error('Error deleting:', err);
-            setError(err.response?.data?.message || 'Failed to delete');
+            setError(err.response?.data?.message || 'Ошибка удаления');
         }
     };
 
     const handleUseDesign = (design) => {
-
         const imageUrl = design.imageUrl || `/api/designs/${design.designId}/image`;
-        console.log('MyContent: Adding design to canvas:', imageUrl);
-        console.log('MyContent: Current design count before add:', designState.designs.length);
 
         addDesign({
-            src: imageUrl, // Don't call getApiImageUrl here - it will be called in Preview
+            src: imageUrl,
             designId: design.designId,
         });
 
         setTimeout(() => {
-            console.log('MyContent: Navigating to home after adding design');
             navigate('/');
         }, 250);
     };
 
     const handleUseImage = (image) => {
-
         const imageUrl = image.imageUrl || `/api/images/${image.imageId}/file`;
-        console.log('MyContent: Adding image to design:', imageUrl);
-        console.log('MyContent: Current design count before add:', designState.designs.length);
 
         addDesign({
-            src: imageUrl, // Don't call getApiImageUrl here - it will be called in Preview
+            src: imageUrl,
             imageId: image.imageId,
         });
 
         setTimeout(() => {
-            console.log('MyContent: Navigating to home after adding image');
             navigate('/');
         }, 250);
     };
@@ -170,10 +158,10 @@ const MyContentPage = () => {
     return (
         <Box sx={{ p: 4 }}>
             <Typography variant="h4" gutterBottom>
-                My Content
+                Мой контент
             </Typography>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-                View and manage your uploaded images and generated designs
+                Просмотр и управление загруженными изображениями и созданными дизайнами
             </Typography>
 
             {error && (
@@ -184,8 +172,8 @@ const MyContentPage = () => {
 
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs value={currentTab} onChange={handleTabChange}>
-                    <Tab icon={<DesignIcon />} label="My Designs" />
-                    <Tab icon={<ImageIcon />} label="My Images" />
+                    <Tab icon={<DesignIcon />} label="Мои дизайны" />
+                    <Tab icon={<ImageIcon />} label="Мои изображения" />
                 </Tabs>
             </Box>
 
@@ -195,13 +183,13 @@ const MyContentPage = () => {
                 </Box>
             ) : (
                 <>
-                    {}
+                    {/* Designs Tab */}
                     {currentTab === 0 && (
                         <Grid container spacing={3}>
                             {designs.length === 0 ? (
                                 <Grid item xs={12}>
                                     <Alert severity="info">
-                                        No designs found. Start generating designs in the Generation section!
+                                        Дизайны не найдены. Создайте дизайн в разделе генерации!
                                     </Alert>
                                 </Grid>
                             ) : (
@@ -222,10 +210,18 @@ const MyContentPage = () => {
                                                 </Typography>
                                                 <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                                     <Chip label={design.theme} size="small" />
-                                                    <Chip label={design.status} size="small" color={
+                                                    <Chip label={design.status === 'COMPLETED' ? 'Готов' : design.status === 'FAILED' ? 'Ошибка' : design.status} size="small" color={
                                                         design.status === 'COMPLETED' ? 'success' :
                                                         design.status === 'FAILED' ? 'error' : 'default'
                                                     } />
+                                                </Box>
+                                                <Box sx={{ mt: 2 }}>
+                                                    <VisibilityToggle
+                                                        itemId={design.designId}
+                                                        itemType="design"
+                                                        initialStatus={design.isPublic}
+                                                        onUpdate={loadContent}
+                                                    />
                                                 </Box>
                                             </CardContent>
                                             <CardActions>
@@ -234,7 +230,7 @@ const MyContentPage = () => {
                                                     startIcon={<ViewIcon />}
                                                     onClick={() => handleViewDetails(design)}
                                                 >
-                                                    View
+                                                    Просмотр
                                                 </Button>
                                                 <Button
                                                     size="small"
@@ -242,7 +238,7 @@ const MyContentPage = () => {
                                                     onClick={() => handleUseDesign(design)}
                                                     disabled={design.status !== 'COMPLETED'}
                                                 >
-                                                    Use
+                                                    Использовать
                                                 </Button>
                                                 <IconButton
                                                     size="small"
@@ -259,13 +255,13 @@ const MyContentPage = () => {
                         </Grid>
                     )}
 
-                    {}
+                    {/* Images Tab */}
                     {currentTab === 1 && (
                         <Grid container spacing={3}>
                             {images.length === 0 ? (
                                 <Grid item xs={12}>
                                     <Alert severity="info">
-                                        No images found. Upload images in the Images section!
+                                        Изображения не найдены. Загрузите изображения в разделе изображений!
                                     </Alert>
                                 </Grid>
                             ) : (
@@ -282,13 +278,13 @@ const MyContentPage = () => {
                                             />
                                             <CardContent>
                                                 <Typography variant="subtitle2" noWrap>
-                                                    {image.title || 'Untitled'}
+                                                    {image.title || 'Без названия'}
                                                 </Typography>
                                                 <Typography variant="body2" color="text.secondary" noWrap>
-                                                    {image.description || 'No description'}
+                                                    {image.description || 'Без описания'}
                                                 </Typography>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {new Date(image.uploadedDate).toLocaleDateString()}
+                                                    {new Date(image.uploadedDate).toLocaleDateString('ru-RU')}
                                                 </Typography>
                                                 <Box sx={{ mt: 2 }}>
                                                     <VisibilityToggle
@@ -305,14 +301,14 @@ const MyContentPage = () => {
                                                     startIcon={<ViewIcon />}
                                                     onClick={() => handleViewDetails(image)}
                                                 >
-                                                    View
+                                                    Просмотр
                                                 </Button>
                                                 <Button
                                                     size="small"
                                                     color="primary"
                                                     onClick={() => handleUseImage(image)}
                                                 >
-                                                    Use
+                                                    Использовать
                                                 </Button>
                                                 <IconButton
                                                     size="small"
@@ -331,12 +327,12 @@ const MyContentPage = () => {
                 </>
             )}
 
-            {}
+            {/* Details Dialog */}
             <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
                 {selectedItem && (
                     <>
                         <DialogTitle>
-                            {currentTab === 0 ? 'Design Details' : 'Image Details'}
+                            {currentTab === 0 ? 'Детали дизайна' : 'Детали изображения'}
                         </DialogTitle>
                         <DialogContent>
                             <Box sx={{ mb: 2 }}>
@@ -353,10 +349,9 @@ const MyContentPage = () => {
                             </Box>
 
                             {currentTab === 0 ? (
-
                                 <>
                                     <Typography variant="subtitle2" gutterBottom>
-                                        Prompt:
+                                        Промпт:
                                     </Typography>
                                     <Typography variant="body2" paragraph>
                                         {selectedItem.prompt}
@@ -365,7 +360,7 @@ const MyContentPage = () => {
                                     {selectedItem.text && (
                                         <>
                                             <Typography variant="subtitle2" gutterBottom>
-                                                Text:
+                                                Текст:
                                             </Typography>
                                             <Typography variant="body2" paragraph>
                                                 {selectedItem.text}
@@ -374,37 +369,36 @@ const MyContentPage = () => {
                                     )}
 
                                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                                        <Chip label={`Theme: ${selectedItem.theme}`} size="small" />
-                                        <Chip label={`Model: ${selectedItem.aiModelId}`} size="small" />
-                                        <Chip label={`Status: ${selectedItem.status}`} size="small" color={
+                                        <Chip label={`Тема: ${selectedItem.theme}`} size="small" />
+                                        <Chip label={`Модель: ${selectedItem.aiModelId}`} size="small" />
+                                        <Chip label={`Статус: ${selectedItem.status === 'COMPLETED' ? 'Готов' : selectedItem.status}`} size="small" color={
                                             selectedItem.status === 'COMPLETED' ? 'success' :
                                             selectedItem.status === 'FAILED' ? 'error' : 'default'
                                         } />
                                     </Box>
 
                                     <Typography variant="caption" color="text.secondary">
-                                        Created: {new Date(selectedItem.createdDate).toLocaleString()}
+                                        Создан: {new Date(selectedItem.createdDate).toLocaleString('ru-RU')}
                                     </Typography>
                                 </>
                             ) : (
-
                                 <>
                                     <Typography variant="subtitle2" gutterBottom>
-                                        Title:
+                                        Название:
                                     </Typography>
                                     <Typography variant="body2" paragraph>
-                                        {selectedItem.title || 'Untitled'}
+                                        {selectedItem.title || 'Без названия'}
                                     </Typography>
 
                                     <Typography variant="subtitle2" gutterBottom>
-                                        Description:
+                                        Описание:
                                     </Typography>
                                     <Typography variant="body2" paragraph>
-                                        {selectedItem.description || 'No description'}
+                                        {selectedItem.description || 'Без описания'}
                                     </Typography>
 
                                     <Typography variant="caption" color="text.secondary">
-                                        Uploaded: {new Date(selectedItem.uploadedDate).toLocaleString()}
+                                        Загружено: {new Date(selectedItem.uploadedDate).toLocaleString('ru-RU')}
                                     </Typography>
                                 </>
                             )}
@@ -424,7 +418,7 @@ const MyContentPage = () => {
                                     )
                                 }
                             >
-                                Download
+                                Скачать
                             </Button>
                             <Button
                                 color="primary"
@@ -437,7 +431,7 @@ const MyContentPage = () => {
                                     handleCloseDialog();
                                 }}
                             >
-                                Use in Design
+                                Использовать в дизайне
                             </Button>
                             <Button
                                 color="error"
@@ -448,9 +442,9 @@ const MyContentPage = () => {
                                     )
                                 }
                             >
-                                Delete
+                                Удалить
                             </Button>
-                            <Button onClick={handleCloseDialog}>Close</Button>
+                            <Button onClick={handleCloseDialog}>Закрыть</Button>
                         </DialogActions>
                     </>
                 )}

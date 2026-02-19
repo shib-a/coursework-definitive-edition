@@ -27,10 +27,19 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
+            // Don't redirect for public endpoints that don't require auth
+            const publicEndpoints = ['/products', '/designs/public', '/designs/generate', '/designs/themes', '/auth/'];
+            const requestUrl = error.config?.url || '';
+            const isPublicEndpoint = publicEndpoints.some(endpoint => requestUrl.includes(endpoint));
 
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+            if (!isPublicEndpoint) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                // Only redirect if user was previously logged in
+                if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+                    window.location.href = '/login';
+                }
+            }
         }
         return Promise.reject(error);
     }
@@ -275,6 +284,27 @@ export const designsAPI = {
         const response = await axios.get(`${API_BASE_URL}/designs/public`);
         return response.data;
     },
+
+    updateDesignVisibility: async (designId, isPublic) => {
+        const response = await apiClient.put(`/designs/${designId}/visibility`, {
+            isPublic,
+        });
+        return response.data;
+    },
+
+    // Public endpoint - no auth required
+    getActiveThemes: async () => {
+        const response = await axios.get(`${API_BASE_URL}/designs/themes`);
+        return response.data;
+    },
+
+    // Public endpoint - no auth required
+    getPopularDesigns: async (limit = 10) => {
+        const response = await axios.get(`${API_BASE_URL}/designs/popular`, {
+            params: { limit }
+        });
+        return response.data;
+    },
 };
 
 export const imagesAPI = {
@@ -327,13 +357,13 @@ export const favouritesAPI = {
         return response.data;
     },
 
-    addToFavourites: async (productId) => {
-        const response = await apiClient.post('/favourites', { productId });
+    addToFavourites: async (designId) => {
+        const response = await apiClient.post(`/favourites/${designId}`);
         return response.data;
     },
 
-    removeFromFavourites: async (favouriteId) => {
-        const response = await apiClient.delete(`/favourites/${favouriteId}`);
+    removeFromFavourites: async (designId) => {
+        const response = await apiClient.delete(`/favourites/${designId}`);
         return response.data;
     },
 };
@@ -566,6 +596,39 @@ export const adminAPI = {
         const response = await apiClient.put(`/admin/products/${productId}/price`, {
             price,
         });
+        return response.data;
+    },
+
+    // Products management
+    getAllProducts: async () => {
+        const response = await apiClient.get('/admin/products');
+        return response.data;
+    },
+
+    createProduct: async (productName, basePrice, size, color, material) => {
+        const response = await apiClient.post('/admin/products', {
+            productName,
+            basePrice,
+            size,
+            color,
+            material,
+        });
+        return response.data;
+    },
+
+    updateProduct: async (productId, productName, basePrice, size, color, material) => {
+        const response = await apiClient.put(`/admin/products/${productId}`, {
+            productName,
+            basePrice,
+            size,
+            color,
+            material,
+        });
+        return response.data;
+    },
+
+    deleteProduct: async (productId) => {
+        const response = await apiClient.delete(`/admin/products/${productId}`);
         return response.data;
     },
 };

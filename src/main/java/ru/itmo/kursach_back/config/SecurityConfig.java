@@ -58,16 +58,37 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Auth endpoints - public
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Products - public access for viewing
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
+
+                        // Images - public access
                         .requestMatchers("/api/images/public").permitAll()
                         .requestMatchers("/api/images/public/**").permitAll()
                         .requestMatchers("/api/images/*/file").permitAll()
-                        .requestMatchers(HttpMethod.POST,"/api/images/upload").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/images/upload").permitAll()
+
+                        // Designs - public gallery and generation
                         .requestMatchers("/api/designs/public").permitAll()
                         .requestMatchers("/api/designs/public/**").permitAll()
                         .requestMatchers("/api/designs/*/image").permitAll()
+                        .requestMatchers("/api/designs/popular").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/designs/generate").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/designs/themes").permitAll()
+
+                        // Countries - public
                         .requestMatchers("/api/addresses/countries").permitAll()
+
+                        // Actuator - public
                         .requestMatchers("/actuator/**").permitAll()
+
+                        // Cart - requires authentication (explicit)
+                        .requestMatchers("/api/cart/**").authenticated()
+
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

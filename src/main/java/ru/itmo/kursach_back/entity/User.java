@@ -9,7 +9,7 @@ import ru.itmo.kursach_back.util.AuthAuthority;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "\"is\"")
 @Data
 public class User {
     @Id

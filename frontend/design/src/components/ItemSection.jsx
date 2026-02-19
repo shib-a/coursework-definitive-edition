@@ -15,46 +15,36 @@ const ItemSection = () => {
 
     useEffect(() => {
         if (hasLoadedProducts.current) {
-            console.log('ItemSection: Products already loaded, skipping');
             return;
         }
         const fetchProducts = async () => {
             setLoading(true);
             try {
                 const data = await productsAPI.getGroupedProducts();
-                console.log('ItemSection: Loaded product groups:', data);
                 setProductGroups(data);
 
                 if (data.length > 0) {
-
                     if (designState.productId && designState.productName) {
-                        console.log('ItemSection: Product already selected:', designState.productName);
-
                         const existingGroup = data.find(p => p.productName === designState.productName);
                         if (existingGroup) {
                             setSelectedProductGroup(existingGroup);
                             setSelectedSize(designState.size);
                             setSelectedColor(designState.color);
-                            console.log('ItemSection: Restored previous selection');
-                            return; // Don't override existing selection
+                            return;
                         }
                     }
 
-                    console.log('ItemSection: No product selected, choosing default');
                     const tshirtGroup = data.find(p => p.productName === 'Футболка базовая') || data[0];
-                    console.log('ItemSection: Selected default product group:', tshirtGroup);
                     setSelectedProductGroup(tshirtGroup);
 
                     const defaultSize = tshirtGroup.availableSizes.includes('M') ? 'M' : tshirtGroup.availableSizes[0];
                     const defaultColor = tshirtGroup.availableColors.includes('Белый') ? 'Белый' : tshirtGroup.availableColors[0];
-                    console.log('ItemSection: Default size and color:', defaultSize, defaultColor);
                     setSelectedSize(defaultSize);
                     setSelectedColor(defaultColor);
 
                     const variant = tshirtGroup.variants.find(
                         v => v.size === defaultSize && v.color === defaultColor
                     );
-                    console.log('ItemSection: Found variant:', variant);
 
                     if (variant) {
                         const designUpdate = {
@@ -64,13 +54,11 @@ const ItemSection = () => {
                             color: defaultColor,
                             productName: tshirtGroup.productName
                         };
-                        console.log('ItemSection: Updating design with:', designUpdate);
                         updateDesign(designUpdate);
                     }
                 }
             } catch (err) {
-                console.error('ItemSection: Error fetching products:', err);
-                setError('Failed to load products');
+                setError('Ошибка загрузки продуктов');
             } finally {
                 setLoading(false);
                 hasLoadedProducts.current = true;
@@ -79,11 +67,10 @@ const ItemSection = () => {
 
         fetchProducts();
 
-    }, []); // Empty dependency array - fetch only once on mount
+    }, []);
 
     useEffect(() => {
         if (productGroups.length > 0 && designState.productName && selectedProductGroup?.productName !== designState.productName) {
-            console.log('ItemSection: Syncing with global state:', designState);
             const group = productGroups.find(p => p.productName === designState.productName);
             if (group) {
                 setSelectedProductGroup(group);
@@ -108,9 +95,6 @@ const ItemSection = () => {
                 color: color,
                 productName: productGroup.productName
             });
-        } else {
-
-            console.warn(`Variant not available: ${productGroup.productName} - ${size} - ${color}`);
         }
     }, [updateDesign]);
 
@@ -120,7 +104,6 @@ const ItemSection = () => {
         setSelectedProductGroup(productGroup);
 
         if (productGroup) {
-
             const defaultSize = productGroup.availableSizes[0] || 'M';
             const defaultColor = productGroup.availableColors[0] || 'Белый';
             setSelectedSize(defaultSize);
@@ -165,7 +148,6 @@ const ItemSection = () => {
 
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            {}
             {productGroups.length > 0 && (
                 <FormControl fullWidth sx={{ mb: 3 }}>
                     <InputLabel>Тип продукта</InputLabel>
@@ -184,13 +166,12 @@ const ItemSection = () => {
 
             {selectedProductGroup && (
                 <>
-                    {}
                     <Typography variant="h6" gutterBottom>Цвет</Typography>
                     <ToggleButtonGroup
                         value={selectedColor}
                         exclusive
                         onChange={handleColorChange}
-                        aria-label="product color"
+                        aria-label="цвет продукта"
                         sx={{ mb: 3, flexWrap: 'wrap' }}
                     >
                         {selectedProductGroup.availableColors.map((color) => (
@@ -205,7 +186,6 @@ const ItemSection = () => {
                         ))}
                     </ToggleButtonGroup>
 
-                    {}
                     <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Размер</InputLabel>
                         <Select value={selectedSize} onChange={handleSizeChange}>
@@ -215,7 +195,6 @@ const ItemSection = () => {
                         </Select>
                     </FormControl>
 
-                    {}
                     {currentVariant ? (
                         <Box sx={{ mt: 2, p: 2, bgcolor: '#e8f5e9', borderRadius: 1 }}>
                             <Typography variant="body2">
@@ -237,7 +216,6 @@ const ItemSection = () => {
                         </Alert>
                     )}
 
-                    {}
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="caption" color="text.secondary">
                             Доступно вариантов: {selectedProductGroup.variants.length}
@@ -250,3 +228,4 @@ const ItemSection = () => {
 };
 
 export default ItemSection;
+

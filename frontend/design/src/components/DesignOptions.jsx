@@ -27,36 +27,33 @@ const DesignOptions = () => {
                 margin: 'auto',
                 padding: 2,
                 overflowY: 'auto',
-                maxHeight: '80vh', // Make it scrollable
+                maxHeight: '80vh',
                 border: '1px solid #ddd',
                 borderRadius: 2,
                 backgroundColor: '#fff',
             }}
         >
-            {}
             <Typography variant="h6" gutterBottom>
-                Design <span role="img" aria-label="info">ℹ️</span>
+                Дизайн
             </Typography>
-            <TextField fullWidth label="Custom t-shirt prompt" variant="outlined" sx={{ mb: 2 }} />
+            <TextField fullWidth label="Промпт для футболки" variant="outlined" sx={{ mb: 2 }} />
 
             <Typography variant="subtitle1" gutterBottom>
-                Text on Design <span role="img" aria-label="info">ℹ️</span>
+                Текст на дизайне
             </Typography>
-            <TextField fullWidth label="Words or phrase (optional)" variant="outlined" sx={{ mb: 2 }} />
+            <TextField fullWidth label="Слова или фраза (опционально)" variant="outlined" sx={{ mb: 2 }} />
 
-            {}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                <Chip label="Cat" onDelete={() => {}} color="primary" variant="outlined" />
-                <Chip label="Thanksgiving" onDelete={() => {}} color="primary" variant="outlined" />
-                <Chip label="Halloween" onDelete={() => {}} color="primary" variant="outlined" />
+                <Chip label="Кот" onDelete={() => {}} color="primary" variant="outlined" />
+                <Chip label="Праздник" onDelete={() => {}} color="primary" variant="outlined" />
+                <Chip label="Хэллоуин" onDelete={() => {}} color="primary" variant="outlined" />
             </Box>
 
-            {}
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Ideogram</InputLabel>
-                        <Select value="Premium" label="Ideogram">
+                        <InputLabel>Модель</InputLabel>
+                        <Select value="Premium" label="Модель">
                             <MenuItem value="Premium">Premium</MenuItem>
                         </Select>
                     </FormControl>
@@ -71,8 +68,8 @@ const DesignOptions = () => {
                 </Grid>
                 <Grid item xs={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Quality</InputLabel>
-                        <Select value="AR" label="Quality">
+                        <InputLabel>Качество</InputLabel>
+                        <Select value="AR" label="Качество">
                             <MenuItem value="AR">AR</MenuItem>
                         </Select>
                     </FormControl>
@@ -82,9 +79,9 @@ const DesignOptions = () => {
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Variations</InputLabel>
-                        <Select value="Draft" label="Variations">
-                            <MenuItem value="Draft">Draft -15s</MenuItem>
+                        <InputLabel>Вариации</InputLabel>
+                        <Select value="Draft" label="Вариации">
+                            <MenuItem value="Draft">Черновик -15с</MenuItem>
                         </Select>
                     </FormControl>
                 </Grid>
@@ -92,7 +89,7 @@ const DesignOptions = () => {
                     <FormControl fullWidth>
                         <InputLabel>Premium</InputLabel>
                         <Select value="Premium" label="Premium">
-                            <MenuItem value="Premium">Premium -10s</MenuItem>
+                            <MenuItem value="Premium">Premium -10с</MenuItem>
                         </Select>
                     </FormControl>
                 </Grid>
@@ -100,118 +97,113 @@ const DesignOptions = () => {
                     <FormControl fullWidth>
                         <InputLabel>Ultra</InputLabel>
                         <Select value="Ultra" label="Ultra">
-                            <MenuItem value="Ultra">Ultra -10s</MenuItem>
+                            <MenuItem value="Ultra">Ultra -10с</MenuItem>
                         </Select>
                     </FormControl>
                 </Grid>
             </Grid>
 
-            {}
             <Button variant="contained" color="warning" fullWidth sx={{ mb: 1 }}>
-                Submit 2 Credits
+                Отправить (2 кредита)
             </Button>
 
-            {}
             <Alert severity="error" sx={{ mb: 2 }}>
-                This service is currently unavailable in your country.
+                Сервис временно недоступен в вашем регионе.
             </Alert>
 
             <Divider sx={{ mb: 2 }} />
 
-            {}
             <Typography variant="h6" gutterBottom>
-                VIBES <span role="img" aria-label="info">ℹ️</span>
+                СТИЛИ
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography>Create your own vibe</Typography>
+                <Typography>Создать свой стиль</Typography>
                 <Button variant="contained" color="primary">
-                    ADD
+                    ДОБАВИТЬ
                 </Button>
             </Box>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Funny</Typography>
+                    <Typography>Смешной</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Trendy</Typography>
+                    <Typography>Трендовый</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Inclusivity</Typography>
+                    <Typography>Инклюзивность</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Minimalist</Typography>
+                    <Typography>Минимализм</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Peace</Typography>
+                    <Typography>Мир</Typography>
                 </Box>
             </Box>
 
             <Divider sx={{ my: 2 }} />
 
-            {}
             <Typography variant="h6" gutterBottom>
-                SHAPES <span role="img" aria-label="info">ℹ️</span>
+                ФОРМЫ
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography>Create your own shape</Typography>
+                <Typography>Создать свою форму</Typography>
                 <Button variant="contained" color="primary">
-                    ADD
+                    ДОБАВИТЬ
                 </Button>
             </Box>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Heart</Typography>
+                    <Typography>Сердце</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Cat</Typography>
+                    <Typography>Кот</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Music note</Typography>
+                    <Typography>Нота</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Dog</Typography>
+                    <Typography>Собака</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Anchor</Typography>
+                    <Typography>Якорь</Typography>
                 </Box>
             </Box>
 
             <Divider sx={{ my: 2 }} />
 
-            {}
             <Typography variant="h6" gutterBottom>
-                PATTERNS
+                ПАТТЕРНЫ
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
                 <Box sx={{ textAlign: 'center' }}>
-                    <IconButton></IconButton> {}
-                    <Typography>Infinite Cosmos</Typography>
+                    <IconButton></IconButton>
+                    <Typography>Бесконечный космос</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Nebula Blaze</Typography>
+                    <Typography>Туманность</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
                     <IconButton></IconButton>
-                    <Typography>Asteroid Field</Typography>
+                    <Typography>Астероиды</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
-                    <IconButton></IconButton> {}
-                    <Typography>Galactic Spiral</Typography>
+                    <IconButton></IconButton>
+                    <Typography>Галактика</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
-                    <IconButton></IconButton> {}
-                    <Typography>Saratoga Cosmos</Typography>
+                    <IconButton></IconButton>
+                    <Typography>Звездное небо</Typography>
                 </Box>
             </Box>
         </Box>

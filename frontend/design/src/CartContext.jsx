@@ -10,14 +10,17 @@ export const CartProvider = ({ children }) => {
     const { user } = useContext(AuthContext);
 
     const fetchCartItems = useCallback(async () => {
-        if (!user) return;
+        if (!user) {
+            setCartItems([]);
+            return;
+        }
 
         try {
             setLoading(true);
             const items = await cartAPI.getCartItems();
-            setCartItems(items);
+            setCartItems(Array.isArray(items) ? items : []);
         } catch (error) {
-            console.error('Error fetching cart items:', error);
+            setCartItems([]);
         } finally {
             setLoading(false);
         }
@@ -33,8 +36,8 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = async (productId, quantity = 1, size, color, price, designId = null) => {
         if (!user) {
-            alert('Please login to add items to cart');
-            return { success: false, error: 'Not authenticated' };
+            alert('Войдите для добавления товаров в корзину');
+            return { success: false, error: 'Не авторизован' };
         }
 
         try {
@@ -42,8 +45,7 @@ export const CartProvider = ({ children }) => {
             setCartItems((prev) => [...prev, newItem]);
             return { success: true, item: newItem };
         } catch (error) {
-            console.error('Error adding to cart:', error);
-            return { success: false, error: error.response?.data || 'Failed to add to cart' };
+            return { success: false, error: error.response?.data || 'Ошибка добавления в корзину' };
         }
     };
 
@@ -59,8 +61,7 @@ export const CartProvider = ({ children }) => {
             );
             return { success: true };
         } catch (error) {
-            console.error('Error updating cart item:', error);
-            return { success: false, error: error.response?.data || 'Failed to update cart' };
+            return { success: false, error: error.response?.data || 'Ошибка обновления корзины' };
         }
     };
 
@@ -72,8 +73,7 @@ export const CartProvider = ({ children }) => {
             setCartItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
             return { success: true };
         } catch (error) {
-            console.error('Error removing from cart:', error);
-            return { success: false, error: error.response?.data || 'Failed to remove from cart' };
+            return { success: false, error: error.response?.data || 'Ошибка удаления из корзины' };
         }
     };
 
@@ -85,8 +85,7 @@ export const CartProvider = ({ children }) => {
             setCartItems([]);
             return { success: true };
         } catch (error) {
-            console.error('Error clearing cart:', error);
-            return { success: false, error: error.response?.data || 'Failed to clear cart' };
+            return { success: false, error: error.response?.data || 'Ошибка очистки корзины' };
         }
     };
 
