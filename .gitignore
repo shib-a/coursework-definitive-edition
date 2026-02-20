@@ -1,50 +1,64 @@
-# Environment variables (contains sensitive data)
+# Environment files
 .env
 .env.local
 .env.*.local
+.env.helios
 
-# Logs
-logs/
-*.log
-
-# Uploads directory (user-generated content)
-uploads/
-
-HELP.md
-.gradle
+# Backend
+target/
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-frontend/node_modules/**
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+!**/src/main/**/target/
+!**/src/test/**/target/
+.gradle/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.iml
+.idea/
+*.ipr
+*.iws
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Frontend
+node_modules/
+frontend/design/build/
+frontend/design/.env.local
+frontend/design/.env.development.local
+frontend/design/.env.test.local
+frontend/design/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-### VS Code ###
+# AI Gateway
+ai-gateway/node_modules/
+ai-gateway/.env
+ai-gateway/logs/
+ai-gateway/*.log
+
+# Process IDs
+.backend.pid
+.frontend.pid
+.gateway.pid
+
+# Logs
+backend.log
+frontend.log
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+test-*-output.png
+
+# IDE
 .vscode/
+.cursor/
+*.swp
+*.swo
+*~

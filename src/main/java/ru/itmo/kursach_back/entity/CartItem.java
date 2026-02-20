@@ -11,7 +11,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cart_items", schema = "\"is\"")
+@Table(name = "cart_items")
 @Data
 public class CartItem {
     @Id

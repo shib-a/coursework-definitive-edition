@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "designs", schema = "\"is\"")
+@Table(name = "designs")
 @Data
 public class Design {
     @Id
@@ -26,6 +26,7 @@ public class Design {
     @NotBlank
     @NotNull
     @Size(max = 255)
+    @Column(name = "design_name")
     String title = "New Design";
 
     @Column(name = "original_prompt", columnDefinition = "TEXT")

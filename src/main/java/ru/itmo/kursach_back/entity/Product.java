@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Entity
-@Table(name = "products", schema = "\"is\"")
+@Table(name = "products")
 @Data
 public class Product {
     @Id

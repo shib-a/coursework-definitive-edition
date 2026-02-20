@@ -18,6 +18,7 @@ public class AIServiceFactory {
         AIService mockService = null;
         AIService openAIService = null;
         AIService stabilityAIService = null;
+        AIService gatewayService = null;
 
         System.out.println("AIServiceFactory: Initializing with " + aiServices.size() + " services");
 
@@ -27,6 +28,8 @@ public class AIServiceFactory {
 
             if (service instanceof MockAIService) {
                 mockService = service;
+            } else if (service.getClass().getSimpleName().contains("LocalAIGateway")) {
+                gatewayService = service;
             } else if (service.getClass().getSimpleName().contains("OpenAI")) {
                 openAIService = service;
             } else if (service.getClass().getSimpleName().contains("Stability")) {
@@ -34,36 +37,43 @@ public class AIServiceFactory {
             }
         }
 
+        if (gatewayService != null && gatewayService.isAvailable()) {
+            System.out.println("AIServiceFactory: AI Gateway AVAILABLE, using for all IDs (1-4)");
+            serviceMap.put(1, gatewayService);
+            serviceMap.put(2, gatewayService);
+            serviceMap.put(3, gatewayService);
+            serviceMap.put(4, gatewayService);
+        } else {
 
-        if (openAIService != null && openAIService.isAvailable()) {
-            System.out.println("AIServiceFactory: OpenAI service AVAILABLE, using for IDs 1 & 2");
-            serviceMap.put(1, openAIService);
-            serviceMap.put(2, openAIService);
-        } else if (mockService != null) {
-            System.out.println("AIServiceFactory: OpenAI NOT available, using Mock for IDs 1 & 2");
-            serviceMap.put(1, mockService);
-            serviceMap.put(2, mockService);
+            if (openAIService != null && openAIService.isAvailable()) {
+                System.out.println("AIServiceFactory: OpenAI service AVAILABLE, using for IDs 1 & 2");
+                serviceMap.put(1, openAIService);
+                serviceMap.put(2, openAIService);
+            } else if (mockService != null) {
+                System.out.println("AIServiceFactory: OpenAI NOT available, using Mock for IDs 1 & 2");
+                serviceMap.put(1, mockService);
+                serviceMap.put(2, mockService);
+            }
+
+            if (stabilityAIService != null && stabilityAIService.isAvailable()) {
+                System.out.println("AIServiceFactory: Stability AI AVAILABLE, using for IDs 3 & 4");
+                serviceMap.put(3, stabilityAIService);
+                serviceMap.put(4, stabilityAIService);
+            } else if (mockService != null) {
+                System.out.println("AIServiceFactory: Stability AI NOT available, using Mock for IDs 3 & 4");
+                serviceMap.put(3, mockService);
+                serviceMap.put(4, mockService);
+            }
         }
-
-
-        if (stabilityAIService != null && stabilityAIService.isAvailable()) {
-            System.out.println("AIServiceFactory: Stability AI AVAILABLE, using for IDs 3 & 4");
-            serviceMap.put(3, stabilityAIService);
-            serviceMap.put(4, stabilityAIService);
-        } else if (mockService != null) {
-            System.out.println("AIServiceFactory: Stability AI NOT available, using Mock for IDs 3 & 4");
-            serviceMap.put(3, mockService);
-            serviceMap.put(4, mockService);
-        }
-
 
         if (mockService != null) {
             serviceMap.put(999, mockService);
             System.out.println("AIServiceFactory: Mock service mapped to ID 999");
         }
 
-        this.defaultService = mockService != null ? mockService :
-                              (openAIService != null ? openAIService : aiServices.get(0));
+        this.defaultService = gatewayService != null && gatewayService.isAvailable() ? gatewayService :
+                              (mockService != null ? mockService :
+                              (openAIService != null ? openAIService : aiServices.get(0)));
 
         System.out.println("AIServiceFactory: Default service: " + defaultService.getServiceName());
     }

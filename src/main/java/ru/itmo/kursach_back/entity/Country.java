@@ -9,7 +9,7 @@ import lombok.Data;
 import java.util.List;
 
 @Entity
-@Table(name = "countries", schema = "\"is\"")
+@Table(name = "countries")
 @Data
 public class Country {
     @Id

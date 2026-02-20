@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "image_datas", schema = "\"is\"")
+@Table(name = "image_datas")
 @Data
 public class ImageData {
     @Id

@@ -12,6 +12,7 @@ public class AIGenerationException extends Exception {
         CONTENT_POLICY_VIOLATION,
         NETWORK_ERROR,
         INVALID_PARAMETERS,
+        SERVICE_UNAVAILABLE,
         UNKNOWN_ERROR
     }
 

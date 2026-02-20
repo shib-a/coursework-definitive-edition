@@ -1,7 +1,7 @@
 -- ============================================
 -- 1. Атомарная регистрация пользователя
 -- ============================================
-CREATE OR REPLACE FUNCTION is.register_user(
+CREATE OR REPLACE FUNCTION tiishka_register_user(
     p_username VARCHAR(100),
     p_login VARCHAR(255),
     p_password VARCHAR(255),
@@ -13,17 +13,17 @@ DECLARE
     v_user_id INTEGER;
 BEGIN
     -- Создаём пользователя
-    INSERT INTO is.users (username, authority, registered_date) 
+    INSERT INTO tiishka_users (username, authority, registered_date) 
     VALUES (p_username, 'USER', CURRENT_DATE) 
     RETURNING user_id INTO v_user_id;
     
     -- Создаём аккаунт с хешированным паролем
-    INSERT INTO is.accounts (login, password, user_id) 
+    INSERT INTO tiishka_accounts (login, password, user_id) 
     VALUES (p_login, p_password, v_user_id);
     
     -- Создаём профиль
     IF p_email IS NOT NULL OR p_first_name IS NOT NULL OR p_last_name IS NOT NULL THEN
-        INSERT INTO is.user_profiles (user_id, email, first_name, last_name) 
+        INSERT INTO tiishka_user_profiles (user_id, email, first_name, last_name) 
         VALUES (v_user_id, p_email, p_first_name, p_last_name);
     END IF;
     
@@ -39,14 +39,14 @@ $$ LANGUAGE plpgsql;
 -- ============================================
 -- 2. Расчёт стоимости корзины
 -- ============================================
-CREATE OR REPLACE FUNCTION is.calculate_cart_total(p_user_id INTEGER)
+CREATE OR REPLACE FUNCTION tiishka_calculate_cart_total(p_user_id INTEGER)
 RETURNS DECIMAL(10,2) AS $$
 DECLARE
     v_total DECIMAL(10,2);
 BEGIN
     SELECT COALESCE(SUM(quantity * price), 0)
     INTO v_total
-    FROM is.cart_items
+    FROM tiishka_cart_items
     WHERE user_id = p_user_id;
     
     RETURN v_total;
@@ -56,7 +56,7 @@ $$ LANGUAGE plpgsql;
 -- ============================================
 -- 3. Проверка, является ли дизайн популярным
 -- ============================================
-CREATE OR REPLACE FUNCTION is.is_popular_design(p_design_id INTEGER)
+CREATE OR REPLACE FUNCTION tiishka_is_popular_design(p_design_id INTEGER)
 RETURNS BOOLEAN AS $$
 DECLARE
     v_favorites_count INTEGER;
@@ -64,12 +64,12 @@ DECLARE
 BEGIN
     -- Подсчёт добавлений в избранное
     SELECT COUNT(*) INTO v_favorites_count
-    FROM is.user_favourites
+    FROM tiishka_user_favourites
     WHERE design_id = p_design_id;
     
     -- Подсчёт заказов с этим дизайном
     SELECT COUNT(*) INTO v_orders_count
-    FROM is.order_items
+    FROM tiishka_order_items
     WHERE design_id = p_design_id;
     
     -- Дизайн считается популярным, если:
@@ -86,7 +86,7 @@ $$ LANGUAGE plpgsql;
 -- ============================================
 -- 4. Получение популярных дизайнов
 -- ============================================
-CREATE OR REPLACE FUNCTION is.get_popular_designs(p_limit INTEGER DEFAULT 10)
+CREATE OR REPLACE FUNCTION tiishka_get_popular_designs(p_limit INTEGER DEFAULT 10)
 RETURNS TABLE(
     design_id INTEGER,
     title VARCHAR(255),
@@ -109,10 +109,10 @@ BEGIN
             WHEN d.image_id IS NOT NULL THEN '/api/designs/' || d.design_id || '/image'
             ELSE NULL
         END as image_url
-    FROM is.designs d
-    LEFT JOIN is.users u ON d.owner_id = u.user_id
-    LEFT JOIN is.user_favourites uf ON d.design_id = uf.design_id
-    LEFT JOIN is.order_items oi ON d.design_id = oi.design_id
+    FROM tiishka_designs d
+    LEFT JOIN tiishka_users u ON d.owner_id = u.user_id
+    LEFT JOIN tiishka_user_favourites uf ON d.design_id = uf.design_id
+    LEFT JOIN tiishka_order_items oi ON d.design_id = oi.design_id
     WHERE d.is_public = true
     GROUP BY d.design_id, d.title, u.username, d.image_id
     HAVING (COUNT(DISTINCT uf.favorite_id) + COUNT(DISTINCT oi.order_item_id)) > 0
@@ -124,7 +124,7 @@ $$ LANGUAGE plpgsql;
 -- ============================================
 -- 5. Получение статистики по дизайну
 -- ============================================
-CREATE OR REPLACE FUNCTION is.get_design_stats(p_design_id INTEGER)
+CREATE OR REPLACE FUNCTION tiishka_get_design_stats(p_design_id INTEGER)
 RETURNS TABLE(
     design_id INTEGER,
     favorites_count BIGINT,
@@ -137,10 +137,10 @@ BEGIN
         p_design_id,
         COUNT(DISTINCT uf.favorite_id) as favorites_count,
         COUNT(DISTINCT oi.order_item_id) as orders_count,
-        is.is_popular_design(p_design_id) as is_popular
-    FROM is.designs d
-    LEFT JOIN is.user_favourites uf ON d.design_id = uf.design_id
-    LEFT JOIN is.order_items oi ON d.design_id = oi.design_id
+        tiishka_is_popular_design(p_design_id) as is_popular
+    FROM tiishka_designs d
+    LEFT JOIN tiishka_user_favourites uf ON d.design_id = uf.design_id
+    LEFT JOIN tiishka_order_items oi ON d.design_id = oi.design_id
     WHERE d.design_id = p_design_id
     GROUP BY d.design_id;
 END;

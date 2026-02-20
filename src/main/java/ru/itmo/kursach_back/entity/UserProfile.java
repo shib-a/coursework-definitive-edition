@@ -10,7 +10,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="user_profiles", schema = "\"is\"")
+@Table(name="user_profiles")
 @Data
 public class UserProfile {
     @Id

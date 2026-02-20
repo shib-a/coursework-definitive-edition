@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "generation_themes", schema = "\"is\"")
+@Table(name = "generation_themes")
 @Data
 public class GenerationTheme {
     @Id
@@ -24,8 +24,7 @@ public class GenerationTheme {
     @Column(name = "theme_name", nullable = false)
     String themeName;
 
-    @NotNull
-    @Column(name = "theme_prompt_template", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "theme_prompt_template", columnDefinition = "TEXT")
     String themePromptTemplate;
 
     @Column(name = "preview_image_id")
@@ -38,9 +37,8 @@ public class GenerationTheme {
     @Column(name = "created_by")
     Integer createdBy;
 
-    @NotNull
-    @Column(name = "created_at", nullable = false)
-    LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "preview_image_id", insertable = false, updatable = false)

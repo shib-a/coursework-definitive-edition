@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="user_favorites", schema = "\"is\"")
+@Table(name="user_favorites")
 @Data
 public class UserFavourite {
     @Id
