@@ -2,41 +2,61 @@
 
 E-commerce с AI-генерацией дизайнов. Курсовая ИС (ИТМО).
 
-## Запуск
+## Быстрый старт
 
 ### 1. Установка
 ```bash
 make install
 make config
-# Отредактировать .env, ai-gateway/.env, .env.helios
 ```
 
-### 2. Туннели (3 терминала)
+Отредактируй `.env`, `ai-gateway/.env`, `.env.helios` (подставь свои данные)
 
-**Терминал 1 — AI Gateway**
+### 2. SSH Config
+Добавь в `~/.ssh/config`:
+```
+Host tiishka-helios
+    HostName se.ifmo.ru
+    User s409858
+    Port 2222
+```
+(Замени `s409858` на свой логин)
+
+### 3. Запуск (4 терминала)
+
+**Терминал 1 — AI Gateway туннель**
 ```bash
 make tunnel
+```
+
+**Терминал 2 — Обратный туннель для Helios**
+```bash
 make tunnel-reverse
 ```
 
-**Терминал 2 — Backend**
+**Терминал 3 — Backend туннель**
 ```bash
 make helios-tunnel
 ```
 
-**Терминал 3 — Frontend**
+**Терминал 4 — Frontend**
 ```bash
 make frontend
 ```
 
-### 3. Деплой на Helios
+Открой http://localhost:3000
+
+### 4. Деплой на Helios
 ```bash
 make deploy-helios
-ssh -p 2222 USER@se.ifmo.ru
+ssh tiishka-helios
 cd coursework && ./start.sh
 ```
 
-## Порты
-- 3000 — Frontend
-- 8080 — Backend (туннель)
-- 9999 — AI Gateway (туннель)
+## Что где слушает
+- `3000` — Frontend (у тебя)
+- `8080` — Backend через туннель (Helios:31337 → localhost:8080)
+- `9999` — AI Gateway через туннель (VPS → localhost:9999)
+
+## Если порт занят
+Измени `HELIOS_REVERSE_PORT` в `.env` (по умолчанию 33334)
